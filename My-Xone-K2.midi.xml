@@ -19,15 +19,15 @@ If you are using K2s, they must have Latching Layers turned off, which is the de
     </info>
     <controller id="XONE:K2">
         <scriptfiles>
-            <file functionprefix="" filename="lodash.mixxx.js"/>
-            <file functionprefix="" filename="midi-components-0.0.js"/>
-            <file functionprefix="XoneK2" filename="Allen-and-Heath-Xone-K2-scripts.js"/>
+            <file filename="lodash.mixxx.js" functionprefix=""/>
+            <file filename="midi-components-0.0.js" functionprefix=""/>
+            <file filename="Allen-and-Heath-Xone-K2-scripts.js" functionprefix="XoneK2"/>
         </scriptfiles>
         <controls>
             <control>
                 <group>[EqualizerRack1_[Channel3]_Effect1]</group>
                 <key>parameter3</key>
-                <description>MIDI Learned from 218 messages.</description>
+                <description>MIDI Learned from 37 messages.</description>
                 <status>0xBB</status>
                 <midino>0x04</midino>
                 <options>
@@ -35,9 +35,19 @@ If you are using K2s, they must have Latching Layers turned off, which is the de
                 </options>
             </control>
             <control>
+                <group>[EqualizerRack1_[Channel1]_Effect1]</group>
+                <key>parameter3</key>
+                <description>MIDI Learned from 40 messages.</description>
+                <status>0xBB</status>
+                <midino>0x05</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
                 <group>[EqualizerRack1_[Channel2]_Effect1]</group>
                 <key>parameter3</key>
-                <description>MIDI Learned from 266 messages.</description>
+                <description>MIDI Learned from 68 messages.</description>
                 <status>0xBB</status>
                 <midino>0x06</midino>
                 <options>
@@ -47,7 +57,7 @@ If you are using K2s, they must have Latching Layers turned off, which is the de
             <control>
                 <group>[EqualizerRack1_[Channel4]_Effect1]</group>
                 <key>parameter3</key>
-                <description>MIDI Learned from 239 messages.</description>
+                <description>MIDI Learned from 131 messages.</description>
                 <status>0xBB</status>
                 <midino>0x07</midino>
                 <options>
@@ -60,6 +70,16 @@ If you are using K2s, they must have Latching Layers turned off, which is the de
                 <description>MIDI Learned from 224 messages.</description>
                 <status>0xBB</status>
                 <midino>0x08</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel1]_Effect1]</group>
+                <key>parameter2</key>
+                <description>MIDI Learned from 43 messages.</description>
+                <status>0xBB</status>
+                <midino>0x09</midino>
                 <options>
                     <normal/>
                 </options>
@@ -80,6 +100,46 @@ If you are using K2s, they must have Latching Layers turned off, which is the de
                 <description>MIDI Learned from 245 messages.</description>
                 <status>0xBB</status>
                 <midino>0x0B</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel3]_Effect1]</group>
+                <key>parameter1</key>
+                <description>MIDI Learned from 228 messages.</description>
+                <status>0xBB</status>
+                <midino>0x0C</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel1]_Effect1]</group>
+                <key>parameter1</key>
+                <description>MIDI Learned from 227 messages.</description>
+                <status>0xBB</status>
+                <midino>0x0D</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel2]_Effect1]</group>
+                <key>parameter1</key>
+                <description>MIDI Learned from 241 messages.</description>
+                <status>0xBB</status>
+                <midino>0x0E</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel4]_Effect1]</group>
+                <key>parameter1</key>
+                <description>MIDI Learned from 239 messages.</description>
+                <status>0xBB</status>
+                <midino>0x0F</midino>
                 <options>
                     <normal/>
                 </options>
@@ -205,15 +265,6 @@ If you are using K2s, they must have Latching Layers turned off, which is the de
                 </options>
             </control>
         </controls>
-        <outputs>
-            <output>
-                <group></group>
-                <key></key>
-                <status>0x9B</status>
-                <midino>0x11</midino>
-                <on>0x05</on>
-                <maximum>0</maximum>
-            </output>
-        </outputs>
+        <outputs/>
     </controller>
 </MixxxControllerPreset>
