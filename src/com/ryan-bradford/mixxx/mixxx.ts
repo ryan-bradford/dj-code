@@ -1,4 +1,4 @@
-import { engine } from "./globals";
+import { engine } from "../globals";
 
 export class Mixxx {
     static togglePlay() {

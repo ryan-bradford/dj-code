@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-var
 
-import { midi } from '../mixxx/globals';
+import { midi } from '../globals';
 import { Mixxx } from '../mixxx/mixxx';
 
 var MyController =  {
