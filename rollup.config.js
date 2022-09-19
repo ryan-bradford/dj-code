@@ -1,13 +1,17 @@
-import { babel, getBabelOutputPlugin } from '@rollup/plugin-babel';
+import { babel } from '@rollup/plugin-babel';
+import typescript from '@rollup/plugin-typescript';
 
 const config = {
-  input: 'launchpad-mkii/index.js',
+  input: 'launchpad-mkii/index.ts',
   output: {
-    format: 'esm',
+    format: 'cjs',
     file: "build/launchpad-mkii.js"
   },
   plugins: [
-    babel({ babelHelpers: 'bundled' }),
+    babel({
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    }),
+    typescript()
   ]
 };
 
