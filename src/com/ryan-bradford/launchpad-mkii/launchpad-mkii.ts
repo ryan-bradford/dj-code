@@ -15,7 +15,16 @@ export class LaunchpadMkii {
 
     public colors = new ColorMapper({
         [Colors.BLACK]: 0,
-        [Colors.ORANGE]: 10
+        [Colors.ORANGE]: 10,
+        [Colors.LIGHT_GREEN]: 21,
+        [Colors.WHITE]: 3,
+        [Colors.DARK_GREEN]: 27,
+        [Colors.PURPLE]: 50,
+        [Colors.PINK]: 57,
+        [Colors.LIGHT_BLUE]: 78,
+        [Colors.DARK_BLUE]: 67,
+        [Colors.BROWN]: 83,
+        [Colors.RED]: 5
     })
 
     init() {
@@ -41,7 +50,9 @@ export class LaunchpadMkii {
 
     buttonPressed(midiNumber: number, event: ButtonStatus) {
         this.buttonWatchers.get(midiNumber).forEach(callback => {
-            callback(event);
+            if (callback) {
+                callback(event);
+            }
         })
     }
 

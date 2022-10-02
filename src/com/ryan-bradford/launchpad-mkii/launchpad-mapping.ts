@@ -39,6 +39,17 @@ export class LaunchpadMapping {
         this.configurePlayButton(xOffset, deckNumber);
         this.configureCueButton(xOffset, deckNumber);
         this.configureForAllBeatloopButtons(xOffset, deckNumber);
+        engine.beginTimer(100, () => {
+            if (deckNumber === 1) {
+                this.configureForDeckSwapButton(3, deckNumber);
+            } else if (deckNumber === 2) {
+                this.configureForDeckSwapButton(4, deckNumber);
+            } else if (deckNumber === 3) {
+                this.configureForDeckSwapButton(1, deckNumber);
+            } else if (deckNumber === 4) {
+                this.configureForDeckSwapButton(2, deckNumber);
+            }
+        }, 1);
     }
 
     private configurePlayButton(xOffset: number, deck: number) {
@@ -49,9 +60,9 @@ export class LaunchpadMapping {
         });
         var mixxSubscription = this.mixxx.subscribeToPlayStatus(deck, (status) => {
             if (status === PlayStatus.PAUSED) {
-                this.launchpad.changeButtonColor(xOffset, 0, Colors.BLACK)
+                this.launchpad.changeButtonColor(xOffset, 0, Colors.RED)
             } else {
-                this.launchpad.changeButtonColor(xOffset, 0, Colors.ORANGE)
+                this.launchpad.changeButtonColor(xOffset, 0, Colors.LIGHT_GREEN)
             }
         })
         this.trackSubscriptions(launchpadSubscription, mixxSubscription, deck);
@@ -59,14 +70,13 @@ export class LaunchpadMapping {
 
     private configureCueButton(xOffset: number, deck: number) {
         var launchpadSubscription = this.launchpad.watchButtonPressed(xOffset + 1, 0, (event) => {
-            engine.log("Cue Pressed");
             this.mixxx.touchCue(deck, event == ButtonStatus.PRESSED);
         });
         var mixxSubscription = this.mixxx.subscribeToCueStatus(deck, (status) => {
             if (status === CueStatus.UNSET) {
-                this.launchpad.changeButtonColor(xOffset + 1, 0, Colors.BLACK)
+                this.launchpad.changeButtonColor(xOffset + 1, 0, Colors.RED)
             } else {
-                this.launchpad.changeButtonColor(xOffset + 1, 0, Colors.ORANGE)
+                this.launchpad.changeButtonColor(xOffset + 1, 0, Colors.LIGHT_GREEN)
             }
         })
         this.trackSubscriptions(launchpadSubscription, mixxSubscription, deck);
@@ -90,26 +100,63 @@ export class LaunchpadMapping {
         });
         var mixxSubscription = this.mixxx.subscribeToBeatloopStatus(deck, size, (status) => {
             if (status === LoopStatus.ENABLED) {
-                this.launchpad.changeButtonColor(x, y, Colors.ORANGE)
+                this.launchpad.changeButtonColor(x, y, Colors.LIGHT_BLUE)
             } else {
-                this.launchpad.changeButtonColor(x, y, Colors.BLACK)
+                this.launchpad.changeButtonColor(x, y, Colors.DARK_BLUE)
             }
         })
         this.trackSubscriptions(launchpadSubscription, mixxSubscription, deck);
     }
 
     private configureForBeatloopToggleButton() {
+        this.launchpad.changeButtonColor(8, 0, Colors.WHITE);
         var launchpadSubscription = this.launchpad.watchButtonPressed(8, 0, (event) => {
             if (event === ButtonStatus.PRESSED) {
                 this.mixxx.toggleLoopType();
             }
             if (this.mixxx.getLoopType() === LoopType.SLIP) {
-                this.launchpad.changeButtonColor(8, 0, Colors.ORANGE);
+                this.launchpad.changeButtonColor(8, 0, Colors.PINK);
             } else {
-                this.launchpad.changeButtonColor(8, 0, Colors.BLACK);
+                this.launchpad.changeButtonColor(8, 0, Colors.WHITE);
             }
         });
         this.globalButtonSubscription.push(launchpadSubscription);
+    }
+
+    private configureForDeckSwapButton(toSwitchTo: number, currentDeck: number) {
+        if (toSwitchTo === 1 || toSwitchTo === 3) {
+            engine.log("Updating");
+            this.updateDeckToggledDisplay(currentDeck, 0);
+            var launchpadSubscription = this.launchpad.watchButtonPressed(0, 8, (event) => {
+                if (event != ButtonStatus.PRESSED) {
+                    return;
+                }
+                this.configureDeckMapping(toSwitchTo);
+                this.updateDeckToggledDisplay(toSwitchTo, 0);
+
+            });
+            this.leftButtonSubscriptions.push(launchpadSubscription);
+        } else {
+            engine.log("Updating");
+            this.updateDeckToggledDisplay(currentDeck, 1);
+            var launchpadSubscription = this.launchpad.watchButtonPressed(1, 8, (event) => {
+                if (event != ButtonStatus.PRESSED) {
+                    return;
+                }
+                this.configureDeckMapping(toSwitchTo);
+                this.updateDeckToggledDisplay(toSwitchTo, 1);
+            });
+            this.rightButtonSubscriptions.push(launchpadSubscription);
+        }
+    }
+
+    private updateDeckToggledDisplay(newDeck: number, xOffset: number) {
+        engine.log("Changing to: " + newDeck);
+        if (newDeck === 3 || newDeck === 4) {
+            this.launchpad.changeButtonColor(xOffset, 8, Colors.LIGHT_BLUE);
+        } else {
+            this.launchpad.changeButtonColor(xOffset, 8, Colors.PURPLE);
+        }
     }
 
     private trackSubscriptions(launchpadSubscription: number, mixxxSubscription: Connection, deck: number) {

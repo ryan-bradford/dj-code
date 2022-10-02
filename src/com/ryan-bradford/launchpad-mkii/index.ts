@@ -49,15 +49,18 @@ Functions:
 2. Queue button (blinking light when set)
 5. Deck swapping
 3. Slip loops
-
 4. Toggle decks
-4. Sync features
+
 6. Hot-cues + colors
 7. Rewind button
 8. Beatjump??
 9. Mute button with fade??
 10. Slide BPM to track with pace
 11. Toggle slip
+12: Toggle loop colors based on slip
+
+Xone K2;
+4. Sync features
 
 ---
 Broad Functionality:

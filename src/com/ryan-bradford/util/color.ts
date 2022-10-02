@@ -1,2 +1,11 @@
 export const BLACK = 0x000000;
 export const ORANGE = 0xFFA500;
+export const LIGHT_GREEN = 0x90EE90;
+export const WHITE = 0xFFFFFF;
+export const DARK_GREEN = 0x023020;
+export const PURPLE = 0xA020F0;
+export const PINK = 0xFFC0CB;
+export const LIGHT_BLUE = 0xADD8E6;
+export const DARK_BLUE = 0x00008B;
+export const BROWN = 0x964B00;
+export const RED = 0xff0000;

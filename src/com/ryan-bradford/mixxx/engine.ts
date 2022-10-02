@@ -6,6 +6,8 @@ export interface Engine {
     log(text: string): void;
     log(number: number): void;
     log(boolean: boolean): void;
+    beginTimer(timeout: number, callback: () => void);
+    beginTimer(timeout: number, callback: () => void, executions: number);
 }
 
 export interface Connection {
