@@ -1,5 +1,6 @@
-import { babel } from '@rollup/plugin-babel';
+import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const config = {
   input: 'src/com/ryan-bradford/launchpad-mkii/index.ts',
@@ -8,10 +9,9 @@ const config = {
     file: "build/launchpad-mkii.js"
   },
   plugins: [
-    babel({
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
-    }),
-    typescript()
+    nodeResolve({browser: true, preferBuiltins: false}),
+    typescript(),
+    commonjs()
   ]
 };
 

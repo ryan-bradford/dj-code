@@ -1,30 +1,34 @@
 // eslint-disable-next-line no-var
 
-import { midi } from '../globals';
 import { Mixxx } from '../mixxx/mixxx';
+import { LaunchpadMkii } from './launchpad-mkii';
+import "../../../../node_modules/core-js/actual/map"
+import "../../../../node_modules/core-js/actual/math"
+import "../../../../node_modules/core-js/actual/number"
+import "../../../../node_modules/core-js/actual/array"
+import { LaunchpadMapping } from './launchpad-mapping';
+var led = 10;
+import { engine } from "../globals";
+
+var mixxx: Mixxx = new Mixxx();
+var launchpad: LaunchpadMkii = new LaunchpadMkii();
+var mapping: LaunchpadMapping = new LaunchpadMapping(launchpad, mixxx);
+declare const print;
 
 var MyController =  {
 
     init: function(id: String, debugging: String) {
-        for (var i = 1; i <= 400; i++) {
-            midi.sendShortMsg(0x90, i, 0x00);
-        }
-        midi.sendShortMsg(0xB0, 0x68, 0x6f);
-        midi.sendShortMsg(0x90, 0x4A, 0x6f);
-        midi.sendShortMsg(0x90, 0x33, 0x6f);
+        engine.log("initing");
+        launchpad.init();
+        mapping.initMapping();
     },
 
     shutdown: function() {
-        // turn off all LEDs
-        for (var i = 1; i <= 40; i++) {
-             midi.sendShortMsg(0x90, i, 0x00);
-         }
+        launchpad.shutdown();
      },
 
-    someButton: function(channel: String, control: String, value: number, status: String, group: String) {
-        if (value === 127) {
-            Mixxx.togglePlay();
-        }
+    buttonPressed: function(channel: string, control: string, value: number, status: string, group: string) {
+        launchpad.buttonPressed(Number.parseInt(control), value);
     }
 }
 if (module) {
@@ -34,6 +38,31 @@ if (module) {
 var module = {};
 
 
-// Processes:
-// 1. Button pressed -> do something in Mixxx
-// 2. Mixxx changes output -> change a LED
+/** Processes:
+1. Button pressed -> do something in Mixxx
+2. Mixxx changes output -> change a LED
+
+----
+
+Functions:
+1. Play/pause
+2. Queue button (blinking light when set)
+5. Deck swapping
+3. Slip loops
+
+4. Toggle decks
+4. Sync features
+6. Hot-cues + colors
+7. Rewind button
+8. Beatjump??
+9. Mute button with fade??
+10. Slide BPM to track with pace
+11. Toggle slip
+
+---
+Broad Functionality:
+1. Easy config A/B testing
+
+
+
+**/

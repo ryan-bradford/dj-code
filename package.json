@@ -24,10 +24,16 @@
     "@babel/preset-env": "^7.19.1",
     "@babel/preset-typescript": "^7.18.6",
     "@rollup/plugin-babel": "^5.3.1",
+    "@rollup/plugin-commonjs": "^22.0.2",
+    "@rollup/plugin-node-resolve": "^14.1.0",
     "@rollup/plugin-typescript": "^8.5.0",
     "rollup": "^2.79.0",
     "rollup-plugin-strip-exports": "^2.0.7",
     "tslib": "^2.4.0",
     "typescript": "^4.8.3"
+  },
+  "dependencies": {
+    "core-js": "^3.25.3",
+    "rxjs": "^7.5.7"
   }
 }
