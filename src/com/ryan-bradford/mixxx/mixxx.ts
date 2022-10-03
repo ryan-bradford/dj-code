@@ -29,19 +29,27 @@ export class Mixxx {
         return conn;
     }
 
-    toggleBeatloop(deck: number, size: number, enabled: boolean) {
+    toggleBeatloop(deck: number, size: number, isDownPress: boolean) {
         var channel = this.buildChannelString(deck);
         if (this.loopType === LoopType.SLIP) {
             engine.setValue(channel, "slip_enabled", true);
-        }
-        if (enabled) {
-            engine.setValue(channel, 'beatloop_' + size + '_activate', enabled);
-        } else {
-            if (engine.getValue(channel, 'beatloop_' + size + '_enabled')) {
-                engine.setValue(channel, 'beatloop_' + size + '_toggle', 1);
-            }
-            if (this.loopType === LoopType.SLIP) {
+            if (isDownPress) {
+                engine.setValue(channel, 'beatloop_' + size + '_activate', isDownPress);
+            } else {
+                if (engine.getValue(channel, 'beatloop_' + size + '_enabled')) {
+                    engine.setValue(channel, 'beatloop_' + size + '_toggle', 1);
+                }
                 engine.setValue(channel, "slip_enabled", false);
+            }
+        } else {
+            if (isDownPress) {
+                if (engine.getValue(channel, 'beatloop_' + size + '_enabled')) {
+                    if (engine.getValue(channel, 'beatloop_' + size + '_enabled')) {
+                        engine.setValue(channel, 'beatloop_' + size + '_toggle', 1);
+                    }
+                } else {
+                    engine.setValue(channel, 'beatloop_' + size + '_activate', isDownPress);
+                }
             }
         }
     }
@@ -61,6 +69,19 @@ export class Mixxx {
     subscribeToBeatloopStatus(deck: number, size: number, callback: (status: LoopStatus) => void) {
         var channel = this.buildChannelString(deck);
         var conn = engine.makeConnection(channel, 'beatloop_' + size + '_enabled', callback);
+        conn.trigger();
+        return conn;
+    }
+
+    toggleHotcue(deck: number, hotcueId: number, status: boolean) {
+        var channel = this.buildChannelString(deck);
+        engine.setValue(channel, "hotcue_" + hotcueId + "_activate", status);
+    }
+
+    subscribeToHotcueColor(deck: number, hotcueId: number, callback: (color: number) => void) {
+        engine.log(deck + " " + hotcueId);
+        var channel = this.buildChannelString(deck);
+        var conn = engine.makeConnection(channel, 'hotcue_' + hotcueId + '_color', callback);
         conn.trigger();
         return conn;
     }

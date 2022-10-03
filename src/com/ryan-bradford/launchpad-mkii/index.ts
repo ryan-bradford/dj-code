@@ -18,7 +18,6 @@ declare const print;
 var MyController =  {
 
     init: function(id: String, debugging: String) {
-        engine.log("initing");
         launchpad.init();
         mapping.initMapping();
     },
@@ -50,8 +49,9 @@ Functions:
 5. Deck swapping
 3. Slip loops
 4. Toggle decks
-
 6. Hot-cues + colors
+13. Stop auto-unloop on normal mode
+
 7. Rewind button
 8. Beatjump??
 9. Mute button with fade??
