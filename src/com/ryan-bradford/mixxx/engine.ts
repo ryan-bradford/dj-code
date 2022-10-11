@@ -1,4 +1,5 @@
 export interface Engine {
+    setParameter(variable: string, arg1: string, arg2: number): void;
     makeConnection(arg0: string, arg1: string, callback: (arg: any) => void): Connection;
     setValue(channel: String, name: String, value: number): void;
     setValue(channel: String, name: String, value: boolean): void;

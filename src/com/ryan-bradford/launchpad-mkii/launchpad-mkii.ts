@@ -70,7 +70,6 @@ export class LaunchpadMkii {
     }
 
     changeButtonColor(x: number, y: number, color: number) {
-        engine.log("Changing " + x + " " + y + " to " + color);
         var midiNumber = this.getButtonMidiId(x, y);
         if (midiNumber >= 104) {
             midi.sendShortMsg(0xB0, this.getButtonMidiId(x, y), this.colors.getValueForNearestColor(color));

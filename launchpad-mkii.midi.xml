@@ -1,15 +1,15 @@
 <?xml version='1.0' encoding='utf-8'?>
 <MixxxControllerPreset schemaVersion="1">
+    <info>
+        <name>Launchpad MKII</name>
+        <author>bradfordr</author>
+        <description>Multi page mapping for the Novation Launchpad</description>
+    </info>
     <controller id="Novation Launchpad">
-        <info>
-            <name>Novation Launchpad</name>
-            <author>bradfordr</author>
-            <description>Multi page mapping for the Novation Launchpad</description>
-        </info>
         <scriptfiles>
             <file filename="build/launchpad-mkii.js" functionprefix="MyController"/>
         </scriptfiles>
-                <controls>
+        <controls>
             <control>
                 <group>[Master]</group>
                 <key>MyController.buttonPressed</key>

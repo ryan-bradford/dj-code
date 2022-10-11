@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm run build-mkii",
-    "build-mkii": "npx rollup --config mkii-rollup.config.js"
+    "build": "npm run build-mkii && npm run build-xone-k2",
+    "build-mkii": "npx rollup --config mkii-rollup.config.js",
+    "build-xone-k2": "npx rollup --config xone-k2-rollup.config.js"
   },
   "repository": {
     "type": "git",

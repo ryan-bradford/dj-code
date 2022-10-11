@@ -44,9 +44,7 @@ export class Mixxx {
         } else {
             if (isDownPress) {
                 if (engine.getValue(channel, 'beatloop_' + size + '_enabled')) {
-                    if (engine.getValue(channel, 'beatloop_' + size + '_enabled')) {
-                        engine.setValue(channel, 'beatloop_' + size + '_toggle', 1);
-                    }
+                    engine.setValue(channel, 'beatloop_' + size + '_toggle', 1);
                 } else {
                     engine.setValue(channel, 'beatloop_' + size + '_activate', isDownPress);
                 }
@@ -79,11 +77,27 @@ export class Mixxx {
     }
 
     subscribeToHotcueColor(deck: number, hotcueId: number, callback: (color: number) => void) {
-        engine.log(deck + " " + hotcueId);
         var channel = this.buildChannelString(deck);
         var conn = engine.makeConnection(channel, 'hotcue_' + hotcueId + '_color', callback);
         conn.trigger();
         return conn;
+    }
+
+    setFaderLevel(deck: number, level: number) {
+        engine.setParameter(this.buildChannelString(deck), "volume", level);
+    }
+
+    setXEqLevel(deck: number, level: number, eq: number) {
+        var variable = "[EqualizerRack1_" + this.buildChannelString(deck) + "_Effect1]";
+        engine.setParameter(variable, "parameter" + eq, level);
+    }
+
+    setDeckMasterSync(deck: number) {
+        engine.setParameter(this.buildChannelString(1), "sync_enabled", 1);
+        engine.setParameter(this.buildChannelString(2), "sync_enabled", 1);
+        engine.setParameter(this.buildChannelString(3), "sync_enabled", 1);
+        engine.setParameter(this.buildChannelString(4), "sync_enabled", 1);
+        engine.setParameter(this.buildChannelString(deck), "sync_master", 1);
     }
 
     private buildChannelString(deck: number): string {
