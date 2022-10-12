@@ -97,6 +97,10 @@ export class Mixxx {
         engine.setParameter(this.buildChannelString(2), "sync_enabled", 1);
         engine.setParameter(this.buildChannelString(3), "sync_enabled", 1);
         engine.setParameter(this.buildChannelString(4), "sync_enabled", 1);
+        engine.setParameter(this.buildChannelString(1), "quantize", 1);
+        engine.setParameter(this.buildChannelString(2), "quantize", 1);
+        engine.setParameter(this.buildChannelString(3), "quantize", 1);
+        engine.setParameter(this.buildChannelString(4), "quantize", 1);
         engine.setParameter(this.buildChannelString(deck), "sync_master", 1);
     }
 
