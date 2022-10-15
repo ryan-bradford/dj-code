@@ -38,6 +38,7 @@ export class XoneK2Mapping {
         this.xonek2.changeTopButtonLightColor(this.getXFromDeck(deck), 1, Colors.DARK_GREEN);
         this.configureForTempTempoChange(deck);
         this.configureForKeylock(deck);
+        this.configureForHeadphoneCueMapping(deck);
     }
 
     private configureFaderMapping(deck: number) {
@@ -146,10 +147,19 @@ export class XoneK2Mapping {
     private configureForTempTempoChange(deck: number) {
         var encoderTurn = new ControlInfo(ControlType.ENCODER_TOP_TURN, this.getXFromDeck(deck), 0);
         const xonek2Subscription = this.xonek2.watchMidiControl(encoderTurn, (value: EncoderTurn) => {
+            var speedDirection;
+            var jumpDirection;
             if (value === EncoderTurn.CLOCKWISE) {
-                this.mixxx.tempBeatShiftDirection(deck, "up");
+                speedDirection = "up";
+                jumpDirection = "forward";
             } else if (value === EncoderTurn.COUNTER_CLOCKWISE) {
-                this.mixxx.tempBeatShiftDirection(deck, "down");
+                speedDirection = "down";
+                jumpDirection = "backward";
+            }
+            if (this.mixxx.isDeckPlaying(deck)) {
+                this.mixxx.tempBeatShiftDirection(deck, speedDirection);
+            } else {
+                this.mixxx.beatjump(deck, 1, jumpDirection);
             }
         })
         this.midiSubscriptions.push(xonek2Subscription);
@@ -206,6 +216,25 @@ export class XoneK2Mapping {
                 }
             }))
         }
+    }
+
+    private configureForHeadphoneCueMapping(deck: number) {
+        var button = new ControlInfo(ControlType.BUTTON_TOP, this.getXFromDeck(deck), 0);
+        const xonek2Subscription = this.xonek2.watchMidiControl(button, (value) => {
+            if (value === 127) {
+                this.mixxx.toggleHeadphoneCueEnabled(deck);
+            }
+        })
+        this.xonek2.changeTopButtonLightColor(this.getXFromDeck(deck), 0, Colors.DARK_GREEN);
+        const mixxxSubscriptions = this.mixxx.subscribeToHeadphoneCueEnabled(deck, (isEnabled) => {
+            if (isEnabled) {
+                this.xonek2.changeTopButtonLightColor(this.getXFromDeck(deck), 0, Colors.RED);
+            } else {
+                this.xonek2.changeTopButtonLightColor(this.getXFromDeck(deck), 0, Colors.DARK_GREEN);
+            }
+        })
+        this.midiSubscriptions.push(xonek2Subscription);
+        this.mixxxSubscriptions.push(mixxxSubscriptions);
     }
 
     private getXFromDeck(deck: number) {

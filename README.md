@@ -1,7 +1,4 @@
 TODO:
-1. Adjust master + headphone volume
-2. Scrub through songs
-3. Headphone cue selector
 5. Effect selector via xone k2 bottom buttons
 
 Later:

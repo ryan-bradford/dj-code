@@ -22,6 +22,8 @@ export class LaunchpadMapping {
         this.globalButtonSubscription.forEach(sub => this.launchpad.stopWatchingButton(sub));
         this.globalButtonSubscription = new Array();
         this.configureForBeatloopToggleButton();
+        this.configureForMasterVolume();
+        this.configureForHeadphoneVolume();
     }
 
     private configureDeckMapping(deckNumber: number) {
@@ -166,6 +168,58 @@ export class LaunchpadMapping {
             });
             this.rightButtonSubscriptions.push(launchpadSubscription);
         }
+    }
+
+    private configureForMasterVolume() {
+        this.launchpad.changeButtonColor(8, 7, Colors.RED);
+        this.launchpad.changeButtonColor(8, 6, Colors.LIGHT_GREEN);
+        var timer = undefined;
+        var volumeUpSubscription = this.launchpad.watchButtonPressed(8, 7, (event) => {
+            if (event != ButtonStatus.PRESSED) {
+                engine.stopTimer(timer);
+                return;
+            }
+            timer = engine.beginTimer(100, () => {
+                this.mixxx.changeMasterVolume("up");
+            });
+        });
+        var volumeDownSubscription = this.launchpad.watchButtonPressed(8, 6, (event) => {
+            if (event != ButtonStatus.PRESSED) {
+                engine.stopTimer(timer);
+                return;
+            }
+            timer = engine.beginTimer(100, () => {
+                this.mixxx.changeMasterVolume("down");
+            });
+        });
+        this.globalButtonSubscription.push(volumeUpSubscription);
+        this.globalButtonSubscription.push(volumeDownSubscription);
+    }
+
+    private configureForHeadphoneVolume() {
+        this.launchpad.changeButtonColor(8, 5, Colors.RED);
+        this.launchpad.changeButtonColor(8, 4, Colors.LIGHT_GREEN);
+        var timer = undefined;
+        var volumeUpSubscription = this.launchpad.watchButtonPressed(8, 5, (event) => {
+            if (event != ButtonStatus.PRESSED) {
+                engine.stopTimer(timer);
+                return;
+            }
+            timer = engine.beginTimer(100, () => {
+                this.mixxx.changeHeadphoneVolume("up");
+            });
+        });
+        var volumeDownSubscription = this.launchpad.watchButtonPressed(8, 4, (event) => {
+            if (event != ButtonStatus.PRESSED) {
+                engine.stopTimer(timer);
+                return;
+            }
+            timer = engine.beginTimer(100, () => {
+                this.mixxx.changeHeadphoneVolume("down");
+            });
+        });
+        this.globalButtonSubscription.push(volumeUpSubscription);
+        this.globalButtonSubscription.push(volumeDownSubscription);
     }
 
     private updateDeckToggledDisplay(newDeck: number, xOffset: number) {

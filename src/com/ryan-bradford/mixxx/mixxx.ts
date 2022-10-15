@@ -7,6 +7,7 @@ export class Mixxx {
     private rateTempShiftTimers = new Map<number, number>();
 
     private static LIBRARY_CHANNEL = "[Library]";
+    private static MASTER_CHANNEL = "[Master]";
 
     togglePlay(deck: number) {
         var channel = this.buildChannelString(deck);
@@ -166,6 +167,31 @@ export class Mixxx {
 
     loadTrack(deck: number) {
         engine.setParameter(this.buildChannelString(deck), "LoadSelectedTrack", 1);
+    }
+
+    toggleHeadphoneCueEnabled(deck: number) {
+        engine.setParameter(this.buildChannelString(deck), "pfl",
+            !engine.getParameter(this.buildChannelString(deck), "pfl") as any);
+    }
+
+    subscribeToHeadphoneCueEnabled(deck: number, callback: (isEnabled: boolean) => void): Connection {
+        return engine.makeConnection(this.buildChannelString(deck), "pfl", callback);
+    }
+
+    isDeckPlaying(deck: number): boolean {
+        return engine.getParameter(this.buildChannelString(deck), "play") as any;
+    }
+
+    beatjump(deck: number, size: number, direction: string) {
+        engine.setParameter(this.buildChannelString(deck), "beatjump_" + size + "_" + direction, 1);
+    }
+
+    changeMasterVolume(direction: string) {
+        return engine.setParameter(Mixxx.MASTER_CHANNEL, "gain_" + direction + "_small", 1) as any;
+    }
+
+    changeHeadphoneVolume(direction: string) {
+        return engine.setParameter(Mixxx.MASTER_CHANNEL, "headGain_" + direction + "_small", 1) as any;
     }
 
     private buildChannelString(deck: number): string {
