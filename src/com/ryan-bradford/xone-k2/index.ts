@@ -24,6 +24,7 @@ var MyXoneK2 =  {
 
     shutdown: function() {
         xonek2.shutdown();
+        mapping.stopMapping();
      },
 
     midiSignal: function(channel: string, control: string, value: number, status: string, group: string) {

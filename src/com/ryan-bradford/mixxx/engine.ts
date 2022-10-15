@@ -4,11 +4,13 @@ export interface Engine {
     setValue(channel: String, name: String, value: number): void;
     setValue(channel: String, name: String, value: boolean): void;
     getValue(channel: String, name: String): number;
+    getParameter(channel: String, name: String): number;
     log(text: string): void;
     log(number: number): void;
     log(boolean: boolean): void;
-    beginTimer(timeout: number, callback: () => void);
-    beginTimer(timeout: number, callback: () => void, executions: number);
+    beginTimer(timeout: number, callback: () => void) : number;
+    beginTimer(timeout: number, callback: () => void, executions: number): number;
+    stopTimer(timer: number);
 }
 
 export interface Connection {

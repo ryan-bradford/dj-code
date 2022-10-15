@@ -4,6 +4,9 @@ import { Connection } from "./engine";
 export class Mixxx {
 
     private loopType: LoopType = LoopType.NORMAL;
+    private rateTempShiftTimers = new Map<number, number>();
+
+    private static LIBRARY_CHANNEL = "[Library]";
 
     togglePlay(deck: number) {
         var channel = this.buildChannelString(deck);
@@ -92,16 +95,77 @@ export class Mixxx {
         engine.setParameter(variable, "parameter" + eq, level);
     }
 
-    setDeckMasterSync(deck: number) {
-        engine.setParameter(this.buildChannelString(1), "sync_enabled", 1);
-        engine.setParameter(this.buildChannelString(2), "sync_enabled", 1);
-        engine.setParameter(this.buildChannelString(3), "sync_enabled", 1);
-        engine.setParameter(this.buildChannelString(4), "sync_enabled", 1);
-        engine.setParameter(this.buildChannelString(1), "quantize", 1);
-        engine.setParameter(this.buildChannelString(2), "quantize", 1);
-        engine.setParameter(this.buildChannelString(3), "quantize", 1);
-        engine.setParameter(this.buildChannelString(4), "quantize", 1);
-        engine.setParameter(this.buildChannelString(deck), "sync_master", 1);
+    isSyncEnabledOnDeck(deck: number): boolean {
+        return engine.getParameter(this.buildChannelString(deck), "sync_mode") === 1 ||
+            engine.getParameter(this.buildChannelString(deck), "sync_mode") === 2;
+    }
+
+    getDeckCurrentBpm(deck: number): number {
+        return engine.getParameter(this.buildChannelString(deck), "visual_bpm");
+    }
+
+    getDeckOriginalBpm(deck: number): number {
+        return engine.getParameter(this.buildChannelString(deck), "file_bpm");
+    }
+
+    setDeckToDefaultBpm(deck: number) {
+        engine.setParameter(this.buildChannelString(deck), "rate_set_default", 1);
+    }
+
+    enableSyncOnDeck(deck: number) {
+        engine.setParameter(this.buildChannelString(deck), "sync_enabled", 1);
+    }
+
+    subscribeToSyncMode(deck: number, callback: (mode: number) => void) {
+        var channel = this.buildChannelString(deck);
+        var conn = engine.makeConnection(channel, 'sync_mode', callback);
+        conn.trigger();
+        return conn;
+    }
+
+    changeDeckRateSmall(deck: number, direction: string) {
+        engine.setParameter(this.buildChannelString(deck), "bpm_" + direction + "_small", 1);
+    }
+
+    tempBeatShiftDirection(deck: number, direction: string) {
+        engine.stopTimer(this.rateTempShiftTimers.get(deck));
+        engine.setParameter(this.buildChannelString(deck), "rate_temp_" + direction, 1);
+        this.rateTempShiftTimers.set(deck, engine.beginTimer(500, () => {
+            engine.setParameter(this.buildChannelString(deck), "rate_temp_up", 0);
+            engine.setParameter(this.buildChannelString(deck), "rate_temp_down", 0);
+        }));
+    }
+
+    toggleKeyLock(deck: number) {
+        engine.setParameter(this.buildChannelString(deck), "keylock", !engine.getParameter(this.buildChannelString(deck), "keylock") as any);
+    }
+
+    subscribeToKeylock(deck: number, callback: (isEnabled: boolean) => void) {
+        var channel = this.buildChannelString(deck);
+        var conn = engine.makeConnection(channel, 'keylock', callback);
+        conn.trigger();
+        return conn;
+    }
+
+    openFolder() {
+        engine.setValue(Mixxx.LIBRARY_CHANNEL, "MoveRight", 1);
+    }
+
+    closeFolder() {
+        engine.setValue(Mixxx.LIBRARY_CHANNEL, "MoveLeft", 1);
+        engine.setValue(Mixxx.LIBRARY_CHANNEL, "MoveLeft", 1);
+    }
+
+    navigateLibraryDirection(direction: number) {
+        engine.setValue(Mixxx.LIBRARY_CHANNEL, "MoveVertical", direction);
+    }
+
+    moveFocusDirection(direction: number) {
+        engine.setValue(Mixxx.LIBRARY_CHANNEL, "MoveFocus", direction);
+    }
+
+    loadTrack(deck: number) {
+        engine.setParameter(this.buildChannelString(deck), "LoadSelectedTrack", 1);
     }
 
     private buildChannelString(deck: number): string {

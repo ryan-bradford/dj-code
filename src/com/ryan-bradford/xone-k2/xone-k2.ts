@@ -191,3 +191,13 @@ export enum ButtonStatus {
     UNPRESSED = 0,
     PRESSED = 127
 }
+
+export enum EncoderTurn {
+    CLOCKWISE = 1,
+    COUNTER_CLOCKWISE = 127
+}
+
+export enum EncoderPress {
+    PRESS_DOWN = 127,
+    RELEASE = 0,
+}
