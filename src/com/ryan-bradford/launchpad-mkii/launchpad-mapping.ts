@@ -88,7 +88,7 @@ export class LaunchpadMapping {
     private configureForAllBeatloopButtons(xOffset: number, deck: number) {
         var baseLoop = 0.125;
         var loopRow1 = [baseLoop, baseLoop * 2, baseLoop * 4, baseLoop*8];
-        var loopRow2 = [ baseLoop * 16,  baseLoop * 32,  baseLoop * 64,  baseLoop * 128];
+        var loopRow2 = [ 4, 8, 16, 32];
         for (var x = 0; x < loopRow1.length; x++) {
             this.configureForBeatloopButton(x + xOffset, 1, loopRow1[x], deck);
         }
