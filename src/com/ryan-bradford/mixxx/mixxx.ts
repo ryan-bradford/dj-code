@@ -87,6 +87,23 @@ export class Mixxx {
         return conn;
     }
 
+    getHotcueColor(deck: number, hotcueId: number): number {
+        var channel = this.buildChannelString(deck);
+        return engine.getParameter(channel, 'hotcue_' + hotcueId + '_color');
+    }
+
+    getHotcueEnabled(deck: number, hotcueId: number): number {
+        var channel = this.buildChannelString(deck);
+        return engine.getParameter(channel, 'hotcue_' + hotcueId + '_enabled');
+    }
+
+    subscribeToHotcueEnabled(deck: number, hotcueId: number, callback: (color: number) => void) {
+        var channel = this.buildChannelString(deck);
+        var conn = engine.makeConnection(channel, 'hotcue_' + hotcueId + '_enabled', callback);
+        conn.trigger();
+        return conn;
+    }
+
     setFaderLevel(deck: number, level: number) {
         engine.setParameter(this.buildChannelString(deck), "volume", level);
     }

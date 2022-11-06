@@ -140,9 +140,21 @@ export class LaunchpadMapping {
             this.mixxx.toggleHotcue(deck, hotcueId, event === ButtonStatus.PRESSED);
         });
         var mixxSubscription = this.mixxx.subscribeToHotcueColor(deck, hotcueId, (color) => {
-            this.launchpad.changeButtonColor(x, y,  color);
+            if (this.mixxx.getHotcueEnabled(deck, hotcueId)) {
+                this.launchpad.changeButtonColor(x, y,  color);
+            } else {
+                this.launchpad.changeButtonColor(x, y,  Colors.BLACK);
+            }
+        })
+        var mixxSubscription2 = this.mixxx.subscribeToHotcueEnabled(deck, hotcueId, (enabled) => {
+            if (enabled === 0) {
+                this.launchpad.changeButtonColor(x, y,  Colors.BLACK);
+            } else {
+                this.launchpad.changeButtonColor(x, y,  this.mixxx.getHotcueColor(deck, hotcueId));
+            }
         })
         this.trackSubscriptions(launchpadSubscription, mixxSubscription, deck);
+        this.trackSubscriptions(undefined, mixxSubscription2, deck);
     }
 
     private configureForDeckSwapButton(toSwitchTo: number, currentDeck: number) {
