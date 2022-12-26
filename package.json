@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm run build-mkii && npm run build-xone-k2",
+    "build": "npm run build-mkii && npm run build-xone-k2 && npm run build-visuals",
     "build-mkii": "npx rollup --config mkii-rollup.config.js",
-    "build-xone-k2": "npx rollup --config xone-k2-rollup.config.js"
+    "build-xone-k2": "npx rollup --config xone-k2-rollup.config.js",
+    "build-visuals": "npx rollup --config visuals-rollup.config.js"
   },
   "repository": {
     "type": "git",
@@ -28,13 +29,16 @@
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-node-resolve": "^14.1.0",
     "@rollup/plugin-typescript": "^8.5.0",
+    "@types/p5": "^1.4.3",
     "rollup": "^2.79.0",
+    "rollup-plugin-exclude-dependencies-from-bundle": "^1.1.23",
     "rollup-plugin-strip-exports": "^2.0.7",
     "tslib": "^2.4.0",
     "typescript": "^4.8.3"
   },
   "dependencies": {
     "core-js": "^3.25.3",
+    "p5": "^1.5.0",
     "rxjs": "^7.5.7"
   }
 }

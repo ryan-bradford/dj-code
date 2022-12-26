@@ -4,6 +4,7 @@
         "module": "esnext",
         "sourceMap": false,
         "outDir": "build-ts",
+        "allowSyntheticDefaultImports": true,
         "lib": ["es6"]
     },
 }
