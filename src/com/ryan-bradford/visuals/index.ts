@@ -1,5 +1,4 @@
 import * as P5Class from 'p5';
-import * as test from 'p5/lib/addons/p5.sound';
 
 let mic;
 
