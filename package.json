@@ -8,7 +8,7 @@
     "build": "npm run build-mkii && npm run build-xone-k2 && npm run build-visuals",
     "build-mkii": "npx rollup --config mkii-rollup.config.js",
     "build-xone-k2": "npx rollup --config xone-k2-rollup.config.js",
-    "build-visuals": "npx rollup --config visuals-rollup.config.js"
+    "build-visuals": "npx rollup --config visuals-rollup.config.js && cp ./src/com/ryan-bradford/visuals/index.html ./build/visuals"
   },
   "repository": {
     "type": "git",
