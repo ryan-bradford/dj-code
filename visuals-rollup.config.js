@@ -12,11 +12,11 @@ const config = {
   },
   plugins: [
     excludeDependenciesFromBundle(),
-    nodeResolve({browser: true, preferBuiltins: false}),
+    nodeResolve({jsnext: true}),
     typescript({
        target: "es6"
     }),
-    commonjs()
+    commonjs({transformMixedEsModules:true})
   ]
 };
 
