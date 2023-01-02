@@ -39,7 +39,10 @@ export class BeatAwareStack {
             return 0;
         }
         return this.lastValidBeats.getLast() + Math.floor(timeSinceLastBeat / currentGap) * currentGap;
+    }
 
+    getNextBeat(currentTime: number): number {
+        return this.getLastBeat(currentTime) + this.getMillisBetweenBeats();
     }
 
     getBpm(): number {

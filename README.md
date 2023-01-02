@@ -16,7 +16,12 @@ VDJ Software:
 1. Ability to select AUX input from DJ controller
 2. MIDI select for renderings
 3. MIDI toggles for frequency controls
+4. Change zoom levels using launchpad
+5. Transitions between visuals
+6. Take p5 files from installed node package
 
 Overall Project:
 1. Add test to CICD
 2. Improve README
+3. Improve build output to have folders
+4. Add webpack for copying files
