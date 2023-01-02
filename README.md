@@ -2,6 +2,7 @@ DJ Controls:
 5. Effect selector via xone k2 bottom buttons
 7. Adjust BPM at a constant rate
 8. Account for adjust overshoot
+9. Write BPM to file
 
 Later:
 4. Rewind mode
@@ -19,9 +20,7 @@ VDJ Software:
 4. Change zoom levels using launchpad
 5. Transitions between visuals
 6. Take p5 files from installed node package
+7. Read BPM from Mixxx rather than detecting
 
 Overall Project:
-1. Add test to CICD
 2. Improve README
-3. Improve build output to have folders
-4. Add webpack for copying files
