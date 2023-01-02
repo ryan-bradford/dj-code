@@ -1,10 +1,13 @@
 {
     "compilerOptions": {
-        "target": "es5",
         "module": "esnext",
         "sourceMap": false,
         "outDir": "build-ts",
         "allowSyntheticDefaultImports": true,
-        "lib": ["es6"]
+        "lib": ["es6", "dom"],
+        "esModuleInterop": true
     },
+    "include": [
+        "./**/*.ts"
+    ]
 }

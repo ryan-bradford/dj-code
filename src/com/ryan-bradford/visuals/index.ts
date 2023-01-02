@@ -1,29 +1,62 @@
-import * as P5Class from 'p5';
+import * as P5Class from "p5";
+import * as test from "p5/lib/addons/p5.sound";
+import { BeatAwareStack } from "./beats/beat-aware-stack";
+import { Renderer } from "./renderers/renderer";
+import { ShapeRenderer } from "./renderers/shape-renderer";
+import { WaveRenderer } from "./renderers/wave-renderer";
 
-let mic;
+let mic: P5Class.AudioIn;
 
-export function sketch(p5: P5Class) {
-    p5.setup = () => {
-        p5.createCanvas(710, 200);
+let p5Constructors: any = (window as any).p5;
+let p5Instance: P5Class = window as any;
 
-        // Create an Audio input
-       mic = new window.p5.AudioIn();
+let fft: P5Class.FFT;
+let peakDetect: P5Class.PeakDetect;
+let isStarted = false;
+let beats: BeatAwareStack = new BeatAwareStack();
+let sound: P5Class.SoundFile;
+let waveRenderer: Renderer;
 
-       // start the Audio Input.
-        // By default, it does not .connect() (to the computer speakers)
-        mic.start();
-    };
-
-    p5.draw = () => {
-        p5.background(200);
-
-        // Get the overall volume (between 0 and 1.0)
-        let vol = mic.getLevel();
-        p5.fill(127);
-        p5.stroke(0);
-
-        // Draw an ellipse with height based on volume
-        let h = p5.map(vol, 0, 1, p5.height, 0);
-        p5.ellipse(p5.width / 2, h - 25, 50, 50);
-    }
+export function preload(){
+    sound = p5Instance.loadSound('song.mp3');
 }
+
+export function setup() {
+  p5Instance.createCanvas(710, 200);
+
+  // Create an Audio input
+  // mic = new p5Constructors.AudioIn();
+
+  // start the Audio Input.
+  // By default, it does not .connect() (to the computer speakers)
+  // mic.start();
+  fft = new p5Constructors.FFT();
+  // fft.setInput(mic);
+  peakDetect = new p5Constructors.PeakDetect(0, 2000, 0.3);
+  peakDetect.onPeak((peak) => {
+    beats.registerBeat(p5Instance.millis());
+  });
+  waveRenderer = new WaveRenderer(p5Instance);
+}
+
+export function touchStarted() {
+  // (p5.getAudioContext() as AudioContext).resume();
+  isStarted = true;
+
+  if (sound.isPlaying()) {
+    sound.pause();
+  } else {
+    sound.loop();
+  }
+}
+
+export function draw() {
+  // Pulse white on the beat, then fade out with an inverse cube curve
+  let lastBeat = beats.getLastBeat(p5Instance.millis());
+  let nextBeat = beats.getNextBeat(p5Instance.millis());
+  let spectrum = fft.analyze();
+  peakDetect.update(fft);
+  let centroid = fft.getCentroid();
+  waveRenderer.render(lastBeat, nextBeat, spectrum, centroid);
+}
+
