@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "module": "esnext",
+        "target": "es5",
         "sourceMap": false,
         "outDir": "build-ts",
         "allowSyntheticDefaultImports": true,
