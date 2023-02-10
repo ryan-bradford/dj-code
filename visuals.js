@@ -1,121 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
-const FASTEST_BPM = 200;
-const SLOWEST_BPM = 5;
-const MILLISECONDS_IN_SECOND = 1000;
-const SECONDS_IN_MINUTE = 60;
-const BUCKET_COUNT = 10;
-const BPM_FUDGE_FACTOR = 0.05;
-function detectBpm(beats) {
-    // Cases:
-    // 1. Perfectly aligned
-    // 2. Skipped beat
-    // 3. Extra beat off time
-    // 4. Changing BPM
-    // 5. Random beat
-    /**
-     * Algorithm:
-     * 1. Calculate distance between beats
-     * 2. Group into buckets
-     * 3. Find relations between buckets
-     */
-    const smallestBpm = SECONDS_IN_MINUTE * MILLISECONDS_IN_SECOND / FASTEST_BPM;
-    let initialBpms = beats.getArray().map((val, index) => {
-        if (index == 0) {
-            return undefined;
-        }
-        return val - beats.getArray()[index - 1];
-    })
-        .filter(val => val != undefined)
-        .filter(val => val >= smallestBpm)
-        .map(val => SECONDS_IN_MINUTE * MILLISECONDS_IN_SECOND / val)
-        .map(Math.round);
-    let bpmBuckets = bucketNumbersLinearly(initialBpms, BUCKET_COUNT, SLOWEST_BPM, FASTEST_BPM);
-    let bpmToCountMap = new Map(bpmBuckets
-        .filter(bucket => bucket.length)
-        .map(bucket => {
-        let avg = !bucket.length ? 0 : bucket.reduce((a, b) => a + b, 0) / bucket.length;
-        return bucket.map((val) => avg);
-    })
-        .map(bucket => {
-        return [bucket[0], bucket.length];
-    }));
-    let possibleBpms = Array.from(bpmToCountMap.keys());
-    possibleBpms.forEach((bpm, index) => {
-        for (var toTest = index + 1; toTest < possibleBpms.length; toTest++) {
-            if (isValidRatio(bpm, toTest)) {
-                let currentCount = bpmToCountMap.get(bpm);
-                bpmToCountMap.delete(bpm);
-                bpmToCountMap.set(toTest, bpmToCountMap.get(toTest) + currentCount);
-            }
-        }
-    });
-    let highestCount = 0;
-    let bestBpm = 0;
-    possibleBpms = Array.from(bpmToCountMap.keys());
-    possibleBpms.forEach((bpm) => {
-        let count = bpmToCountMap.get(bpm);
-        if (count > highestCount) {
-            highestCount = count;
-            bestBpm = bpm;
-        }
-    });
-    // merge buckets that are even ratios.
-    return Math.round(bestBpm);
-}
-function isValidRatio(a, b) {
-    let ratio = Math.max(a, b) / Math.min(a, b);
-    let logRatio = Math.log2(ratio);
-    if (logRatio < BPM_FUDGE_FACTOR) {
-        return false;
-    }
-    let remainder = logRatio % 1;
-    let trueRemainder = Math.min(remainder, 1 - remainder);
-    return trueRemainder < BPM_FUDGE_FACTOR;
-}
-/**
- * Put numbers into buckets that have equal-size ranges.
- *
- * @param {Number[]} data The data to bucket.
- * @param {Number} bucketCount The number of buckets to use.
- * @param {Number} [min] The minimum allowed data value. Defaults to the smallest value passed.
- * @param {Number} [max] The maximum allowed data value. Defaults to the largest value passed.
- *
- * @return {Number[][]} An array of buckets of numbers.
- */
-function bucketNumbersLinearly(data, bucketCount, min, max) {
-    var i = 0, l = data.length;
-    // If min and max are given, set them to the highest and lowest data values
-    if (typeof min === 'undefined') {
-        min = Infinity;
-        max = -Infinity;
-        for (i = 0; i < l; i++) {
-            if (data[i] < min)
-                min = data[i];
-            if (data[i] > max)
-                max = data[i];
-        }
-    }
-    var inc = (max - min) / bucketCount, buckets = new Array(bucketCount);
-    // Initialize buckets
-    for (i = 0; i < bucketCount; i++) {
-        buckets[i] = [];
-    }
-    // Put the numbers into buckets
-    for (i = 0; i < l; i++) {
-        // Buckets include the lower bound but not the higher bound, except the top bucket
-        if (data[i] === max) {
-            buckets[bucketCount - 1].push(data[i]);
-        }
-        else {
-            buckets[((data[i] - min) / inc) | 0].push(data[i]);
-        }
-    }
-    return buckets;
-}
-
 class FixedStack {
     constructor(targetLength, array) {
         this.targetLength = targetLength;
@@ -155,42 +39,15 @@ class FixedStack {
 
 class BeatAwareStack {
     constructor() {
-        this.beats = new FixedStack(20);
         this.currentBpm = 100;
         this.lastValidBeats = new FixedStack(1);
     }
     registerBeat(time) {
-        this.currentBpm = detectBpm(this.beats);
-        let currentGap = this.getMillisBetweenBeats();
-        if (this.lastValidBeats.length() == 0 || currentGap == 0) {
-            this.lastValidBeats.push(time);
-        }
-        else {
-            for (let i = 0; i < this.lastValidBeats.length(); i++) {
-                let beat = this.lastValidBeats.getArray()[i];
-                let gap = time - beat;
-                if (gap < currentGap) {
-                    continue;
-                }
-                if (isValidRatio(gap, currentGap)) {
-                    this.lastValidBeats.push(time);
-                    break;
-                }
-            }
-        }
-        this.beats.push(time);
+        this.lastValidBeats.push(time);
         return this;
     }
     getLastBeat(currentTime) {
-        if (!this.beats.length() || !this.lastValidBeats.length()) {
-            return 0;
-        }
-        let timeSinceLastBeat = currentTime - this.lastValidBeats.getLast();
-        let currentGap = this.getMillisBetweenBeats();
-        if (!currentGap) {
-            return 0;
-        }
-        return this.lastValidBeats.getLast() + Math.floor(timeSinceLastBeat / currentGap) * currentGap;
+        return this.lastValidBeats.getLast();
     }
     getNextBeat(currentTime) {
         return this.getLastBeat(currentTime) + this.getMillisBetweenBeats();
@@ -198,11 +55,94 @@ class BeatAwareStack {
     getBpm() {
         return this.currentBpm;
     }
+    setBpm(bpm) {
+        this.currentBpm = bpm;
+    }
     getMillisBetweenBeats() {
         if (this.currentBpm == 0) {
             return 0;
         }
         return 60000 / this.currentBpm;
+    }
+}
+
+class MixxxAdapter {
+    constructor(navigator, beats, p5Instance) {
+        this.navigator = navigator;
+        this.beats = beats;
+        this.p5Instance = p5Instance;
+    }
+    init() {
+        this.navigator.requestMIDIAccess().then((midi) => this.requestMIDIAccessSuccess(midi), () => this.onMIDIFailure());
+    }
+    requestMIDIAccessSuccess(midi) {
+        var inputs = midi.inputs.values();
+        for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
+            let midiInput = input.value;
+            console.log('midi input', input);
+            if (!midiInput.name.toLowerCase().includes("port 0")) {
+                continue;
+            }
+            midiInput.onmidimessage = (message) => this.getMIDIMessage(message);
+        }
+        midi.onstatechange = (state) => this.midiOnStateChange(state);
+    }
+    getMIDIMessage(midiMessage) {
+        if (midiMessage.data[1] == 52) {
+            this.beats.registerBeat(this.p5Instance.millis());
+            this.beats.setBpm(midiMessage.data[2]);
+        }
+    }
+    midiOnStateChange(state) {
+        console.log(state);
+    }
+    onMIDIFailure() {
+        console.log('Could not access your MIDI devices.');
+    }
+}
+
+class OceanRenderer {
+    constructor(p5, p5Constructors) {
+        this.p5 = p5;
+        this.p5Constructors = p5Constructors;
+    }
+    initialize() {
+        this.image = this.p5.loadImage("ocean.jpg");
+    }
+    render(lastBeat, nextBeat, spectrum, centroid) {
+        this.p5.image(this.image, 0, 0);
+        this.p5.filter("invert");
+        this.p5.filter("dilate");
+    }
+}
+
+class Color {
+    constructor(red, blue, green) {
+        this.red = red;
+        this.blue = blue;
+        this.green = green;
+    }
+}
+class ShapeRenderer {
+    constructor(p5Instance, p5Constructors) {
+        this.p5Instance = p5Instance;
+        this.p5Constructors = p5Constructors;
+        this.p5Instance.colorMode("rgb");
+        const redColor = new Color(255, 0, 0);
+        const blueColor = new Color(0, 255, 0);
+        const greenColor = new Color(0, 0, 255);
+        this.colors = [redColor, blueColor, greenColor];
+    }
+    initialize() {
+    }
+    render(lastBeat, nextBeat, spectrum, centroid) {
+        this.p5Instance.millis();
+        if (lastBeat != this.lastChangedBeat) {
+            // Rotate shape
+            this.lastChangedBeat = lastBeat;
+            this.colors = [this.colors[1], this.colors[2], this.colors[0]];
+        }
+        this.p5Instance.background(this.colors[0].red, this.colors[0].green, this.colors[0].blue);
     }
 }
 
@@ -214,11 +154,10 @@ class WaveRenderer {
         this.width = this.p5Instance.width;
         this.height = this.p5Instance.height;
     }
+    initialize() {
+    }
     render(lastBeat, nextBeat, spectrum, centroid) {
         this.p5Instance.background(this.p5Instance.map(1 / this.p5Instance.pow((this.p5Instance.millis() - lastBeat) / 1000 + 1, 3), 1, 0, 255, 100));
-        if (!lastBeat) {
-            return;
-        }
         this.p5Instance.stroke("limegreen");
         this.p5Instance.fill("darkgreen");
         this.p5Instance.strokeWeight(1);
@@ -252,50 +191,46 @@ class WaveRenderer {
     }
 }
 
+let mic;
 let p5Constructors = window.p5;
 let p5Instance = window;
 let fft;
-let peakDetect;
 let beats = new BeatAwareStack();
-let sound;
-let waveRenderer;
-function preload() {
-    sound = p5Instance.loadSound('song.mp3');
-}
+let shapeRenderer;
+let activeRenderer;
+let oceanRenderer;
+let mixxxAdapter;
 function setup() {
-    p5Instance.createCanvas(710, 200);
+    p5Instance.createCanvas(window.innerWidth, window.innerHeight);
     // Create an Audio input
-    // mic = new p5Constructors.AudioIn();
+    mic = new p5Constructors.AudioIn();
     // start the Audio Input.
     // By default, it does not .connect() (to the computer speakers)
-    // mic.start();
+    mic.start();
     fft = new p5Constructors.FFT();
-    // fft.setInput(mic);
-    peakDetect = new p5Constructors.PeakDetect(0, 2000, 0.3);
-    peakDetect.onPeak((peak) => {
-        beats.registerBeat(p5Instance.millis());
-    });
-    waveRenderer = new WaveRenderer(p5Instance);
+    fft.setInput(mic);
+    shapeRenderer = new ShapeRenderer(p5Instance, p5Constructors);
+    new WaveRenderer(p5Instance);
+    oceanRenderer = new OceanRenderer(p5Instance, p5Constructors);
+    oceanRenderer.initialize();
+    activeRenderer = shapeRenderer;
+    mixxxAdapter = new MixxxAdapter(navigator, beats, p5Instance);
 }
 function touchStarted() {
-    if (sound.isPlaying()) {
-        sound.pause();
-    }
-    else {
-        sound.loop();
-    }
+    p5Instance.getAudioContext().resume();
+    mixxxAdapter.init();
 }
 function draw() {
     // Pulse white on the beat, then fade out with an inverse cube curve
     let lastBeat = beats.getLastBeat(p5Instance.millis());
     let nextBeat = beats.getNextBeat(p5Instance.millis());
     let spectrum = fft.analyze();
-    peakDetect.update(fft);
     let centroid = fft.getCentroid();
-    waveRenderer.render(lastBeat, nextBeat, spectrum, centroid);
+    p5Instance.clear(undefined, undefined, undefined, undefined);
+    activeRenderer.render(lastBeat, nextBeat, spectrum, centroid);
 }
+// qmidinet -n 1 -i lo -a yes
 
 exports.draw = draw;
-exports.preload = preload;
 exports.setup = setup;
 exports.touchStarted = touchStarted;
