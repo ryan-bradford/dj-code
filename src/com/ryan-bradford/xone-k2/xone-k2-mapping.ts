@@ -93,7 +93,7 @@ export class XoneK2Mapping {
             } else {
                 direction = "up";
             }
-            var desiredTimeInBars = 32 / Math.pow(2, this.bpmSliderTimerCount);
+            var desiredTimeInBars = 128 / Math.pow(2, this.bpmSliderTimerCount);
             var desiredTime = desiredTimeInBars / originalBpm * 60;
             var neededIntervals = Math.abs(Math.round(currentBpm - originalBpm) / 0.1);
             if (this.bpmSliderTimer) {

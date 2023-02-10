@@ -20,6 +20,10 @@ export class ShapeRenderer implements Renderer {
         this.colors = [redColor, blueColor, greenColor];
     }
 
+    initialize() {
+        
+    }
+
     render(lastBeat: number, nextBeat: number, spectrum: number[], centroid: number) {
         let currentTime = this.p5Instance.millis();
         if (lastBeat != this.lastChangedBeat) {

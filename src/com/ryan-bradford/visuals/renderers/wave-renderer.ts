@@ -1,6 +1,5 @@
 import p5, { FFT, PeakDetect } from "p5";
 import { Renderer } from "./renderer";
-import * as test from "p5/lib/addons/p5.sound";
 
 export class WaveRenderer implements Renderer {
   private width: number;
@@ -13,6 +12,10 @@ export class WaveRenderer implements Renderer {
     this.height = this.p5Instance.height;
   }
 
+  initialize() {
+    
+  }
+
   render(
     lastBeat: number,
     nextBeat: number,
@@ -22,9 +25,7 @@ export class WaveRenderer implements Renderer {
     this.p5Instance.background(
         this.p5Instance.map(1 / this.p5Instance.pow((this.p5Instance.millis() - lastBeat) / 1000 + 1, 3), 1, 0, 255, 100)
     );
-    if (!lastBeat) {
-        return;
-    }
+
     this.p5Instance.stroke("limegreen");
     this.p5Instance.fill("darkgreen");
     this.p5Instance.strokeWeight(1);

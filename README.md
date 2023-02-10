@@ -3,6 +3,8 @@ DJ Controls:
 7. Adjust BPM at a constant rate
 8. Account for adjust overshoot
 9. Write BPM to file
+10. Delete queue point
+11. Improve track nudge function
 
 Later:
 4. Rewind mode

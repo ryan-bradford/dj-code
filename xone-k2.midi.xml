@@ -11,7 +11,7 @@
             <description>Mapping for the XoneK2</description>
         </info>
         <scriptfiles>
-            <file filename="build/xone-k2.js" functionprefix="MyXoneK2"/>
+            <file filename="build/xone-k2/xone-k2.js" functionprefix="MyXoneK2"/>
         </scriptfiles>
         <controls>
             <control>

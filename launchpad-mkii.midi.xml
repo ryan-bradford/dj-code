@@ -7,7 +7,7 @@
     </info>
     <controller id="Novation Launchpad">
         <scriptfiles>
-            <file filename="build/launchpad-mkii.js" functionprefix="MyController"/>
+            <file filename="build/mkii/launchpad-mkii.js" functionprefix="MyController"/>
         </scriptfiles>
         <controls>
             <control>

@@ -12,10 +12,7 @@ const config = {
   plugins: [
     nodeResolve({browser: true, preferBuiltins: false}),
     typescript(),
-    commonjs(),
-    static_files({
-        include: ['src/com/ryan-bradford/xone-k2/assets']
-    })
+    commonjs()
   ]
 };
 

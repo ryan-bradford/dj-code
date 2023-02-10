@@ -1,7 +1,8 @@
 import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-import static_files from "rollup-plugin-static-files";
+import babel from "@rollup/plugin-babel";
+
 
 const config = {
   input: 'src/com/ryan-bradford/launchpad-mkii/index.ts',
@@ -11,11 +12,11 @@ const config = {
   },
   plugins: [
     nodeResolve({browser: true, preferBuiltins: false}),
-    typescript(),
+    typescript({
+        target: 'es5'
+    }),
     commonjs(),
-    static_files({
-        include: ['src/com/ryan-bradford/launchpad-mkii/assets']
-    })
+    babel()
   ]
 };
 

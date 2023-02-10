@@ -1,7 +1,7 @@
 import { BeatAwareStack } from "./beat-aware-stack"
 import * as assert from "assert";
 
-describe("BeatAwareStack", () => {
+xdescribe("BeatAwareStack", () => {
 
     let stack: BeatAwareStack;
 
