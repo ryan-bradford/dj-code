@@ -36,6 +36,9 @@ export function setup() {
 }
 
 export function touchStarted() {
+    if (isStarted == true) {
+        return;
+    }
     (p5Instance.getAudioContext() as AudioContext).resume();
     isStarted = true;
     mixxxAdapter.init();
