@@ -12,13 +12,12 @@ export class WaveRenderer implements Renderer {
     this.height = this.p5Instance.height;
   }
 
-  initialize() {
-    
-  }
+  initialize() { }
 
   render(
     lastBeat: number,
     nextBeat: number,
+    bpm: number,
     spectrum: number[],
     centroid: number
   ) {

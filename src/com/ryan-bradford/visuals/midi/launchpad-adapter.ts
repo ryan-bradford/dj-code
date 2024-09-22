@@ -2,9 +2,9 @@ import p5 from "p5";
 import { BeatAwareStack } from "../beats/beat-aware-stack";
 
 
-export class MixxxAdapter {
+export class LaunchpadAdapter {
 
-    constructor(private navigator: Navigator, private beats: BeatAwareStack, private p5Instance: p5) {
+    constructor(private navigator: Navigator) {
     }
 
     init() {
@@ -18,7 +18,7 @@ export class MixxxAdapter {
         for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
             let midiInput: WebMidi.MIDIInput = input.value;
             console.log('midi input', input);
-            if(!midiInput.name.toLowerCase().includes("port 0")) {
+            if(!midiInput.name.toLowerCase().includes("launchpad")) {
                 continue;
             }
             midiInput.onmidimessage = (message) => this.getMIDIMessage(message);
@@ -28,8 +28,7 @@ export class MixxxAdapter {
 
     getMIDIMessage(midiMessage: WebMidi.MIDIMessageEvent) {
         if (midiMessage.data[1] == 52) {
-            this.beats.registerBeat(this.p5Instance.millis());
-            this.beats.setBpm(midiMessage.data[2] + 50);
+            console.log(midiMessage);
         }
     }
 

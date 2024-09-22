@@ -5,6 +5,7 @@ DJ Controls:
 9. Write BPM to file
 10. Delete queue point
 11. Improve track nudge function
+12. Lock channel with button
 
 Later:
 4. Rewind mode
@@ -23,6 +24,7 @@ VDJ Software:
 5. Transitions between visuals
 6. Take p5 files from installed node package
 7. Read BPM from Mixxx rather than detecting
+8. Midi button for setting a 4th beat
 
 Overall Project:
 2. Improve README

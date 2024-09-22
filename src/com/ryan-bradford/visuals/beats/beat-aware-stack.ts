@@ -3,7 +3,7 @@ import { FixedStack } from "../utils/fixed-stack";
 
 export class BeatAwareStack {
 
-    private currentBpm: number = 100;
+    private currentBpm: number;
     private lastValidBeats: FixedStack<number> = new FixedStack(1);
 
     registerBeat(time: number): BeatAwareStack {
