@@ -21,12 +21,11 @@ export class ShapeRenderer implements Renderer {
     }
 
     reset() {
-        
     }
 
     initialize() { }
 
-    render(lastBeat: number, nextBeat: number, bpm: number, spectrum: number[], centroid: number) {
+    render(lastBeat: number, nextBeat: number, bpm: number) {
         let currentTime = this.p5Instance.millis();
         if (lastBeat != this.lastChangedBeat) {
             // Rotate shape

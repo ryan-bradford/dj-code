@@ -30,7 +30,7 @@ export abstract class AbstractShaderRenderer implements Renderer {
 
     }
 
-    render(lastBeat: number, nextBeat: number, bpm: number, spectrum: number[], centroid: number) {
+    render(lastBeat: number, nextBeat: number, bpm: number) {
         this.detectBeats(lastBeat, bpm);
         const intervalLength = 60000 / bpm * this.getIntervalLength();
         const traveledTime = this.p5.millis() - this.lastPeakBeat;

@@ -1,0 +1,89 @@
+import p5 from "p5";
+import { LaunchpadAdapter, LaunchpadColor } from "../midi/launchpad-adapter";
+import { ShapeRenderer } from "../renderers/shaders/shape-renderer";
+import { HypercolorRenderer } from "../renderers/shaders/hypercolor-renderer";
+import { SquiggleRenderer } from "../renderers/shaders/squiggle-renderer";
+import { CloudsRenderer } from "../renderers/shaders/clouds-renderer";
+import { ShapesRenderer } from "../renderers/shapes-renderer";
+import { DancingShape } from "../renderers/gif/dancing-shape-gif";
+import { Renderer } from "../renderers/renderer";
+
+type Mapping = {
+    renderer: Renderer;
+    color: number;
+    x: number;
+    y: number;
+};
+
+export class LaunchpadMapping {
+    private launchpadAdapter: LaunchpadAdapter;
+    private rendererConfig: Array<Mapping> = [];
+    private activeRenderer: [number, number, number];
+
+    constructor(
+        navigator: Navigator,
+        private p5Instance: p5,
+        private p5Constructors: any,
+        private setActiveRenderer: (renderer: Renderer) => void
+    ) {
+        this.launchpadAdapter = new LaunchpadAdapter(navigator);
+    }
+
+    init() {
+        const couldRenderer = new CloudsRenderer(
+            this.p5Instance,
+            this.p5Constructors
+        );
+        couldRenderer.initialize();
+        this.rendererConfig.push({
+            renderer: couldRenderer,
+            color: LaunchpadColor.GREEN,
+            x: 0,
+            y: 0,
+        });
+        this.setActiveRenderer(couldRenderer);
+        const hypercolorRenderer = new HypercolorRenderer(
+            this.p5Instance,
+            this.p5Constructors
+        );
+        hypercolorRenderer.initialize();
+        this.rendererConfig.push({
+            renderer: hypercolorRenderer,
+            color: LaunchpadColor.RED,
+            x: 1,
+            y: 0,
+        });
+
+        // Gif Renderers
+        const dancingShapeRenderer = new DancingShape(this.p5Instance);
+        dancingShapeRenderer.initialize();
+        this.rendererConfig.push({
+            renderer: dancingShapeRenderer,
+            color: LaunchpadColor.LIGHT_BLUE,
+            x: 2,
+            y: 0,
+        });
+    }
+
+    watchRendererConfig(config: Mapping) {
+        this.launchpadAdapter.changeMidiColor(config.x, config.y, config.color);
+        this.launchpadAdapter.subscribeMidiPressed(config.x, config.y, () => {
+            this.setRendererActive(config);
+        });
+    }
+
+    setRendererActive(config: Mapping) {
+        if (this.activeRenderer != null) {
+            this.launchpadAdapter.changeMidiColor(this.activeRenderer[0], this.activeRenderer[1], this.activeRenderer[2])
+        }
+        this.launchpadAdapter.changeMidiColor(config.x, config.y, LaunchpadColor.WHITE);
+        this.activeRenderer = [config.x, config.y, config.color]
+        this.setActiveRenderer(config.renderer);
+    }
+
+    async touchStarted() {
+        await this.launchpadAdapter.init();
+        this.rendererConfig.forEach((config) => this.watchRendererConfig(config))
+        this.setRendererActive(this.rendererConfig[0]);
+    }
+}

@@ -4,6 +4,6 @@ export interface Renderer {
 
     reset();
 
-    render(lastBeat: number, nextBeat: number, bpm: number, spectrum: Array<number>, centroid: number);
+    render(lastBeat: number, nextBeat: number, bpm: number);
 
 }
