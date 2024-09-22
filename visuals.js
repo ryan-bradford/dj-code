@@ -39,7 +39,6 @@ class FixedStack {
 
 class BeatAwareStack {
     constructor() {
-        this.currentBpm = 100;
         this.lastValidBeats = new FixedStack(1);
     }
     registerBeat(time) {
@@ -63,6 +62,38 @@ class BeatAwareStack {
             return 0;
         }
         return 60000 / this.currentBpm;
+    }
+}
+
+class LaunchpadAdapter {
+    constructor(navigator) {
+        this.navigator = navigator;
+    }
+    init() {
+        this.navigator.requestMIDIAccess().then((midi) => this.requestMIDIAccessSuccess(midi), () => this.onMIDIFailure());
+    }
+    requestMIDIAccessSuccess(midi) {
+        var inputs = midi.inputs.values();
+        for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
+            let midiInput = input.value;
+            console.log('midi input', input);
+            if (!midiInput.name.toLowerCase().includes("launchpad")) {
+                continue;
+            }
+            midiInput.onmidimessage = (message) => this.getMIDIMessage(message);
+        }
+        midi.onstatechange = (state) => this.midiOnStateChange(state);
+    }
+    getMIDIMessage(midiMessage) {
+        if (midiMessage.data[1] == 52) {
+            console.log(midiMessage);
+        }
+    }
+    midiOnStateChange(state) {
+        console.log(state);
+    }
+    onMIDIFailure() {
+        console.log('Could not access your MIDI devices.');
     }
 }
 
@@ -90,7 +121,7 @@ class MixxxAdapter {
     getMIDIMessage(midiMessage) {
         if (midiMessage.data[1] == 52) {
             this.beats.registerBeat(this.p5Instance.millis());
-            this.beats.setBpm(midiMessage.data[2]);
+            this.beats.setBpm(midiMessage.data[2] + 50);
         }
     }
     midiOnStateChange(state) {
@@ -101,18 +132,107 @@ class MixxxAdapter {
     }
 }
 
-class OceanRenderer {
-    constructor(p5, p5Constructors) {
+class AbstractShaderRenderer {
+    constructor(p5) {
         this.p5 = p5;
+        this.lastPeakBeat = 0;
+        this.lastX = 0;
+        this.lastY = 0;
+        this.lastFrame = 0;
+        this.currentDirectionX = 2 * Math.random() - 1;
+        this.currentDirectionY = 2 * Math.random() - 1;
+        this.frameDirection = 1;
+    }
+    getNextFrameDirection(direction) {
+        return direction * -1;
+    }
+    render(lastBeat, nextBeat, bpm, spectrum, centroid) {
+        this.detectBeats(lastBeat, bpm);
+        const intervalLength = 60000 / bpm * this.getIntervalLength();
+        const traveledTime = this.p5.millis() - this.lastPeakBeat;
+        const percent = traveledTime / intervalLength;
+        let scaledValue = Math.abs(Math.sin(percent * Math.PI)) || 0;
+        scaledValue = Math.max(scaledValue, .1);
+        // instead of just setting the active shader we are passing it to the createGraphics layer
+        this.p5.shader(this.getShader());
+        // here we're using setUniform() to send our uniform values to the shader
+        this.lastFrame += this.frameDirection * scaledValue * this.getFrameScaleValue();
+        this.lastX += this.currentDirectionX * this.getMouseScaleValue() * scaledValue;
+        this.lastY += this.currentDirectionY * this.getMouseScaleValue() * scaledValue;
+        this.getShader().setUniform("iMouse", [this.lastX, this.lastY]);
+        this.getShader().setUniform("iFrame", this.lastFrame);
+        this.getShader().setUniform("iTime", this.lastFrame);
+        this.getShader().setUniform("iResolution", [this.p5.width, this.p5.height]);
+        // rect gives us some geometry on the screen
+        this.p5.rect(0, 0, this.p5.width, this.p5.height);
+    }
+    detectBeats(lastBeat, bpm) {
+        const intervalLength = 60000 / bpm * this.getIntervalLength();
+        const realTraveledTime = lastBeat - this.lastPeakBeat;
+        const realPercent = realTraveledTime / intervalLength;
+        if (realPercent > this.getGoalPercentOff()) {
+            console.log("BEAT " + lastBeat + " " + (lastBeat - this.lastPeakBeat) + " " + intervalLength);
+            if (lastBeat - this.lastPeakBeat > intervalLength + 100) {
+                console.log("WOAH!");
+            }
+            this.lastPeakBeat = this.p5.millis();
+            this.currentDirectionX = 2 * Math.random() - 1;
+            this.currentDirectionY = 2 * Math.random() - 1;
+            this.frameDirection = this.getNextFrameDirection(this.frameDirection);
+        }
+        else {
+            console.log("NOT_BEAT " + lastBeat + " " + (lastBeat - this.lastPeakBeat) + " " + intervalLength);
+        }
+    }
+    getGoalPercentOff() {
+        return 1 - .2 / this.getIntervalLength();
+    }
+}
+
+class CloudsRenderer extends AbstractShaderRenderer {
+    constructor(p5, p5Constructors) {
+        super(p5);
         this.p5Constructors = p5Constructors;
     }
     initialize() {
-        this.image = this.p5.loadImage("ocean.jpg");
+        this.shader = this.p5.loadShader("shaders/hypercolor.vert", "shaders/clouds.frag");
     }
-    render(lastBeat, nextBeat, spectrum, centroid) {
-        this.p5.image(this.image, 0, 0);
-        this.p5.filter("invert");
-        this.p5.filter("dilate");
+    getShader() {
+        return this.shader;
+    }
+    getIntervalLength() {
+        return 1;
+    }
+    getMouseScaleValue() {
+        return 0;
+    }
+    getFrameScaleValue() {
+        return 0.1;
+    }
+    getNextFrameDirection() {
+        return 1;
+    }
+}
+
+class HypercolorRenderer extends AbstractShaderRenderer {
+    constructor(p5, p5Constructors) {
+        super(p5);
+        this.p5Constructors = p5Constructors;
+    }
+    initialize() {
+        this.shader = this.p5.loadShader("shaders/hypercolor.vert", "shaders/hypercolor.frag");
+    }
+    getShader() {
+        return this.shader;
+    }
+    getIntervalLength() {
+        return 1;
+    }
+    getMouseScaleValue() {
+        return 1;
+    }
+    getFrameScaleValue() {
+        return 4;
     }
 }
 
@@ -133,9 +253,8 @@ class ShapeRenderer {
         const greenColor = new Color(0, 0, 255);
         this.colors = [redColor, blueColor, greenColor];
     }
-    initialize() {
-    }
-    render(lastBeat, nextBeat, spectrum, centroid) {
+    initialize() { }
+    render(lastBeat, nextBeat, bpm, spectrum, centroid) {
         this.p5Instance.millis();
         if (lastBeat != this.lastChangedBeat) {
             // Rotate shape
@@ -143,6 +262,50 @@ class ShapeRenderer {
             this.colors = [this.colors[1], this.colors[2], this.colors[0]];
         }
         this.p5Instance.background(this.colors[0].red, this.colors[0].green, this.colors[0].blue);
+    }
+}
+
+class ShapesRenderer extends AbstractShaderRenderer {
+    constructor(p5, p5Constructors) {
+        super(p5);
+        this.p5Constructors = p5Constructors;
+    }
+    initialize() {
+        this.shader = this.p5.loadShader("shaders/hypercolor.vert", "shaders/shapes.frag");
+    }
+    getShader() {
+        return this.shader;
+    }
+    getIntervalLength() {
+        return 1;
+    }
+    getMouseScaleValue() {
+        return 1;
+    }
+    getFrameScaleValue() {
+        return 0.1;
+    }
+}
+
+class SquiggleRenderer extends AbstractShaderRenderer {
+    constructor(p5, p5Constructors) {
+        super(p5);
+        this.p5Constructors = p5Constructors;
+    }
+    initialize() {
+        this.shader = this.p5.loadShader("shaders/hypercolor.vert", "shaders/squiggle.frag");
+    }
+    getShader() {
+        return this.shader;
+    }
+    getIntervalLength() {
+        return 1;
+    }
+    getMouseScaleValue() {
+        return 0;
+    }
+    getFrameScaleValue() {
+        return 0.2;
     }
 }
 
@@ -154,9 +317,8 @@ class WaveRenderer {
         this.width = this.p5Instance.width;
         this.height = this.p5Instance.height;
     }
-    initialize() {
-    }
-    render(lastBeat, nextBeat, spectrum, centroid) {
+    initialize() { }
+    render(lastBeat, nextBeat, bpm, spectrum, centroid) {
         this.p5Instance.background(this.p5Instance.map(1 / this.p5Instance.pow((this.p5Instance.millis() - lastBeat) / 1000 + 1, 3), 1, 0, 255, 100));
         this.p5Instance.stroke("limegreen");
         this.p5Instance.fill("darkgreen");
@@ -196,12 +358,17 @@ let p5Constructors = window.p5;
 let p5Instance = window;
 let fft;
 let beats = new BeatAwareStack();
-let shapeRenderer;
 let activeRenderer;
-let oceanRenderer;
+let hypercolorRenderer;
+let squiggleRenderer;
+let cloudsRenderer;
+let shapesRenderer;
 let mixxxAdapter;
+let launchpadAdapter;
 function setup() {
-    p5Instance.createCanvas(window.innerWidth, window.innerHeight);
+    p5Instance.createCanvas(window.innerWidth, window.innerHeight, p5Instance.WEBGL);
+    // turn off the createGraphics layers stroke
+    p5Instance.noStroke();
     // Create an Audio input
     mic = new p5Constructors.AudioIn();
     // start the Audio Input.
@@ -209,16 +376,24 @@ function setup() {
     mic.start();
     fft = new p5Constructors.FFT();
     fft.setInput(mic);
-    shapeRenderer = new ShapeRenderer(p5Instance, p5Constructors);
+    new ShapeRenderer(p5Instance, p5Constructors);
     new WaveRenderer(p5Instance);
-    oceanRenderer = new OceanRenderer(p5Instance, p5Constructors);
-    oceanRenderer.initialize();
-    activeRenderer = shapeRenderer;
+    hypercolorRenderer = new HypercolorRenderer(p5Instance, p5Constructors);
+    squiggleRenderer = new SquiggleRenderer(p5Instance, p5Constructors);
+    cloudsRenderer = new CloudsRenderer(p5Instance, p5Constructors);
+    shapesRenderer = new ShapesRenderer(p5Instance, p5Constructors);
+    hypercolorRenderer.initialize();
+    squiggleRenderer.initialize();
+    cloudsRenderer.initialize();
+    shapesRenderer.initialize();
+    activeRenderer = hypercolorRenderer;
     mixxxAdapter = new MixxxAdapter(navigator, beats, p5Instance);
+    launchpadAdapter = new LaunchpadAdapter(navigator);
 }
 function touchStarted() {
     p5Instance.getAudioContext().resume();
     mixxxAdapter.init();
+    launchpadAdapter.init();
 }
 function draw() {
     // Pulse white on the beat, then fade out with an inverse cube curve
@@ -227,9 +402,8 @@ function draw() {
     let spectrum = fft.analyze();
     let centroid = fft.getCentroid();
     p5Instance.clear(undefined, undefined, undefined, undefined);
-    activeRenderer.render(lastBeat, nextBeat, spectrum, centroid);
+    activeRenderer.render(lastBeat, nextBeat, beats.getBpm(), spectrum, centroid);
 }
-// qmidinet -n 1 -i lo -a yes
 
 exports.draw = draw;
 exports.setup = setup;
