@@ -39,6 +39,7 @@ export class XoneK2Mapping {
         this.configureForTempTempoChange(deck);
         this.configureForKeylock(deck);
         this.configureForHeadphoneCueMapping(deck);
+        this.configureForEffectMapping(deck);
     }
 
     private configureFaderMapping(deck: number) {
@@ -235,6 +236,34 @@ export class XoneK2Mapping {
         })
         this.midiSubscriptions.push(xonek2Subscription);
         this.mixxxSubscriptions.push(mixxxSubscriptions);
+    }
+
+    private configureForEffectMapping(deck: number) {
+        // For all 3 filters, setup filter bindings
+        for (var i = 1; i <= 3; i++) {
+            this.configureForEffect(deck, i);
+        }
+    }
+
+    private configureForEffect(deck: number, effectIndex: number) {
+        this.xonek2.changeBottomButtonLightColor(this.getXFromDeck(deck), effectIndex, Colors.PINK);
+        var buttonControl = new ControlInfo(ControlType.BUTTON_BOTTOM, this.getXFromDeck(deck), effectIndex);
+        this.midiSubscriptions.push(this.xonek2.watchMidiControl(buttonControl, (event: ButtonStatus) => {
+            if (event === ButtonStatus.PRESSED) {
+                const newActive = this.mixxx.toggleActiveEffect(deck, effectIndex);
+                if (newActive == null) {
+                    this.xonek2.changeBottomButtonLightColor(this.getXFromDeck(deck), effectIndex, Colors.PINK);
+                } else {
+                    for (var i = 1; i <= 3; i++) {
+                        if (i === newActive) {
+                            this.xonek2.changeBottomButtonLightColor(this.getXFromDeck(deck), i, Colors.RED);
+                        } else {
+                            this.xonek2.changeBottomButtonLightColor(this.getXFromDeck(deck), i, Colors.PINK);
+                        }
+                    }
+                }
+            }
+        }))
     }
 
     private getXFromDeck(deck: number) {

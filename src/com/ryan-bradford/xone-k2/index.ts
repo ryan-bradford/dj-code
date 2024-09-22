@@ -19,6 +19,7 @@ var MyXoneK2 =  {
     init: function(id: String, debugging: String) {
         xonek2.init();
         mapping.initMapping();
+        mixxx.initializeFilters();
 
     },
 

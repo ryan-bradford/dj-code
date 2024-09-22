@@ -1,13 +1,38 @@
 import { engine } from "../globals";
 import { Connection } from "./engine";
 
+// https://manual.mixxx.org/2.4/en/chapters/appendix/mixxx_controls.html#control-[QuickEffectRack1_[ChannelI]_Effect1]-enabled
+
+const EFFECT_MAPPING = {
+    1: {
+        effect: "DISTORTION"
+    },
+    2: {
+        effect: "ECHO"
+    },
+    3: {
+        effect: "FILTER"
+    },
+}
+
 export class Mixxx {
 
     private loopType: LoopType = LoopType.NORMAL;
     private rateTempShiftTimers = new Map<number, number>();
+    private effectStatus = new Map<number, number | undefined>
 
     private static LIBRARY_CHANNEL = "[Library]";
     private static MASTER_CHANNEL = "[Master]";
+
+    initializeFilters() {
+        this.effectStatus = new Map();
+        for (var i = 1; i <= 4; i++) {
+            console.log("clearing " + "[QuickEffectRack1_" + this.buildChannelString(i) + ']');
+            engine.setValue("[QuickEffectRack1_" + this.buildChannelString(i) + ']', 'enabled', true);
+            engine.setValue(`[QuickEffectRack1_${this.buildChannelString(i)}]`, 'loaded_chain_preset', 0);
+            this.effectStatus.set(i, undefined);
+        }
+    }
 
     togglePlay(deck: number) {
         var channel = this.buildChannelString(deck);
@@ -109,8 +134,13 @@ export class Mixxx {
     }
 
     setXEqLevel(deck: number, level: number, eq: number) {
-        var variable = "[EqualizerRack1_" + this.buildChannelString(deck) + "_Effect1]";
-        engine.setParameter(variable, "parameter" + eq, level);
+        const activeEffect = this.effectStatus.get(deck);
+        if (eq === 1 && activeEffect != undefined) {
+            engine.setValue("[QuickEffectRack1_" + this.buildChannelString(deck) + ']', 'super1', level);
+        } else {
+            var variable = "[EqualizerRack1_" + this.buildChannelString(deck) + "_Effect1]";
+            engine.setParameter(variable, "parameter" + eq, level);
+        }
     }
 
     isSyncEnabledOnDeck(deck: number): boolean {
@@ -184,6 +214,24 @@ export class Mixxx {
 
     loadTrack(deck: number) {
         engine.setParameter(this.buildChannelString(deck), "LoadSelectedTrack", 1);
+    }
+
+    toggleActiveEffect(deck: number, effectIndex: number): number | undefined {
+        const current = this.effectStatus.get(deck);
+        if (current === effectIndex) {
+            effectIndex = null;
+        }
+        this.effectStatus.set(deck, effectIndex);
+        if (effectIndex == null) {
+            engine.setValue(`[QuickEffectRack1_${this.buildChannelString(deck)}]`, 'loaded_chain_preset', 0);
+        } else {
+            engine.setValue(`[QuickEffectRack1_${this.buildChannelString(deck)}]`, 'loaded_chain_preset', effectIndex);
+        }
+        return effectIndex;
+    }
+
+    getCurrentActiveFilter(deck: number): number | undefined {
+        return this.effectStatus.get(deck);
     }
 
     toggleHeadphoneCueEnabled(deck: number) {
