@@ -65,38 +65,6 @@ class BeatAwareStack {
     }
 }
 
-class LaunchpadAdapter {
-    constructor(navigator) {
-        this.navigator = navigator;
-    }
-    init() {
-        this.navigator.requestMIDIAccess().then((midi) => this.requestMIDIAccessSuccess(midi), () => this.onMIDIFailure());
-    }
-    requestMIDIAccessSuccess(midi) {
-        var inputs = midi.inputs.values();
-        for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
-            let midiInput = input.value;
-            console.log('midi input', input);
-            if (!midiInput.name.toLowerCase().includes("launchpad")) {
-                continue;
-            }
-            midiInput.onmidimessage = (message) => this.getMIDIMessage(message);
-        }
-        midi.onstatechange = (state) => this.midiOnStateChange(state);
-    }
-    getMIDIMessage(midiMessage) {
-        if (midiMessage.data[1] == 52) {
-            console.log(midiMessage);
-        }
-    }
-    midiOnStateChange(state) {
-        console.log(state);
-    }
-    onMIDIFailure() {
-        console.log('Could not access your MIDI devices.');
-    }
-}
-
 class MixxxAdapter {
     constructor(navigator, beats, p5Instance) {
         this.navigator = navigator;
@@ -110,7 +78,6 @@ class MixxxAdapter {
         var inputs = midi.inputs.values();
         for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
             let midiInput = input.value;
-            console.log('midi input', input);
             if (!midiInput.name.toLowerCase().includes("port 0")) {
                 continue;
             }
@@ -125,10 +92,123 @@ class MixxxAdapter {
         }
     }
     midiOnStateChange(state) {
+    }
+    onMIDIFailure() {
+        console.error('Could not access your MIDI devices.');
+    }
+}
+
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+/* global Reflect, Promise, SuppressedError, Symbol, Iterator */
+
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+}
+
+typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+    var e = new Error(message);
+    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+};
+
+const LaunchpadColor = {
+    RED: 5,
+    WHITE: 3,
+    GREEN: 21,
+    LIGHT_BLUE: 37,
+    PINK: 57,
+    LIGHT_ORANGE: 60,
+    ORANGE: 9,
+    YELLOW: 124
+};
+class LaunchpadAdapter {
+    constructor(navigator) {
+        this.navigator = navigator;
+        this.callbacks = new Map();
+    }
+    init() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const midi = yield this.navigator.requestMIDIAccess({ sysex: true });
+            this.requestMIDIAccessSuccess(midi);
+        });
+    }
+    requestMIDIAccessSuccess(midi) {
+        midi.inputs.forEach(midiInput => {
+            if (!midiInput.name.toLowerCase().includes("mk3 mi")) {
+                return;
+            }
+            console.log('midi input', midiInput);
+            midiInput.onmidimessage = (message) => this.getMIDIMessage(message);
+        });
+        midi.outputs.forEach(output => {
+            if (!output.name.toLowerCase().includes("mk3 mi")) {
+                return;
+            }
+            this.output = output;
+            output.send([240, 0, 32, 41, 2, 13, 14, 1, 247]);
+            for (var x = 0; x < 10; x++) {
+                for (var y = 0; y < 10; y++) {
+                    output.send([0x90, this.getButtonMidiId(x, y), 0]);
+                }
+            }
+            // output.send([0x90, this.getButtonMidiId(5, 5), 5]);
+        });
+        midi.onstatechange = (state) => this.midiOnStateChange(state);
+    }
+    getMIDIMessage(midiMessage) {
+        console.log(midiMessage);
+        const midiKey = midiMessage.data[1];
+        const isPress = midiMessage.data[2] === 127;
+        if (isPress && this.callbacks.has(midiKey)) {
+            this.callbacks.get(midiKey)();
+        }
+    }
+    midiOnStateChange(state) {
         console.log(state);
+    }
+    subscribeMidiPressed(x, y, callback) {
+        this.callbacks.set(this.getButtonMidiId(x, y), callback);
+    }
+    changeMidiColor(x, y, color) {
+        this.output.send([0x90, this.getButtonMidiId(x, y), color]);
     }
     onMIDIFailure() {
         console.log('Could not access your MIDI devices.');
+    }
+    getButtonMidiId(x, y) {
+        if (y === 8) {
+            return 104 + x;
+        }
+        else {
+            return 1 + x + (1 + y) * 10;
+        }
+    }
+    getButtonX(midiNumber) {
+        if (midiNumber >= 104) {
+            return [8, midiNumber - 104];
+        }
+        else {
+            return [Math.floor(midiNumber / 10) - 1, midiNumber % 10 - 1];
+        }
     }
 }
 
@@ -148,7 +228,7 @@ class AbstractShaderRenderer {
     }
     reset() {
     }
-    render(lastBeat, nextBeat, bpm, spectrum, centroid) {
+    render(lastBeat, nextBeat, bpm) {
         this.detectBeats(lastBeat, bpm);
         const intervalLength = 60000 / bpm * this.getIntervalLength();
         const traveledTime = this.p5.millis() - this.lastPeakBeat;
@@ -181,12 +261,31 @@ class AbstractShaderRenderer {
             this.currentDirectionY = 2 * Math.random() - 1;
             this.frameDirection = this.getNextFrameDirection(this.frameDirection);
         }
-        else {
-            console.log("NOT_BEAT " + lastBeat + " " + (lastBeat - this.lastPeakBeat) + " " + intervalLength);
-        }
     }
     getGoalPercentOff() {
         return 1 - .2 / this.getIntervalLength();
+    }
+}
+
+class HypercolorRenderer extends AbstractShaderRenderer {
+    constructor(p5, p5Constructors) {
+        super(p5);
+        this.p5Constructors = p5Constructors;
+    }
+    initialize() {
+        this.shader = this.p5.loadShader("shaders/hypercolor.vert", "shaders/hypercolor.frag");
+    }
+    getShader() {
+        return this.shader;
+    }
+    getIntervalLength() {
+        return 1;
+    }
+    getMouseScaleValue() {
+        return 1;
+    }
+    getFrameScaleValue() {
+        return 4;
     }
 }
 
@@ -215,149 +314,6 @@ class CloudsRenderer extends AbstractShaderRenderer {
     }
 }
 
-class HypercolorRenderer extends AbstractShaderRenderer {
-    constructor(p5, p5Constructors) {
-        super(p5);
-        this.p5Constructors = p5Constructors;
-    }
-    initialize() {
-        this.shader = this.p5.loadShader("shaders/hypercolor.vert", "shaders/hypercolor.frag");
-    }
-    getShader() {
-        return this.shader;
-    }
-    getIntervalLength() {
-        return 1;
-    }
-    getMouseScaleValue() {
-        return 1;
-    }
-    getFrameScaleValue() {
-        return 4;
-    }
-}
-
-class Color {
-    constructor(red, blue, green) {
-        this.red = red;
-        this.blue = blue;
-        this.green = green;
-    }
-}
-class ShapeRenderer {
-    constructor(p5Instance, p5Constructors) {
-        this.p5Instance = p5Instance;
-        this.p5Constructors = p5Constructors;
-        this.p5Instance.colorMode("rgb");
-        const redColor = new Color(255, 0, 0);
-        const blueColor = new Color(0, 255, 0);
-        const greenColor = new Color(0, 0, 255);
-        this.colors = [redColor, blueColor, greenColor];
-    }
-    reset() {
-    }
-    initialize() { }
-    render(lastBeat, nextBeat, bpm, spectrum, centroid) {
-        this.p5Instance.millis();
-        if (lastBeat != this.lastChangedBeat) {
-            // Rotate shape
-            this.lastChangedBeat = lastBeat;
-            this.colors = [this.colors[1], this.colors[2], this.colors[0]];
-        }
-        this.p5Instance.background(this.colors[0].red, this.colors[0].green, this.colors[0].blue);
-    }
-}
-
-class ShapesRenderer extends AbstractShaderRenderer {
-    constructor(p5, p5Constructors) {
-        super(p5);
-        this.p5Constructors = p5Constructors;
-    }
-    initialize() {
-        this.shader = this.p5.loadShader("shaders/hypercolor.vert", "shaders/shapes.frag");
-    }
-    getShader() {
-        return this.shader;
-    }
-    getIntervalLength() {
-        return 1;
-    }
-    getMouseScaleValue() {
-        return 1;
-    }
-    getFrameScaleValue() {
-        return 0.1;
-    }
-}
-
-class SquiggleRenderer extends AbstractShaderRenderer {
-    constructor(p5, p5Constructors) {
-        super(p5);
-        this.p5Constructors = p5Constructors;
-    }
-    initialize() {
-        this.shader = this.p5.loadShader("shaders/hypercolor.vert", "shaders/squiggle.frag");
-    }
-    getShader() {
-        return this.shader;
-    }
-    getIntervalLength() {
-        return 1;
-    }
-    getMouseScaleValue() {
-        return 0;
-    }
-    getFrameScaleValue() {
-        return 0.2;
-    }
-}
-
-class WaveRenderer {
-    constructor(p5Instance) {
-        this.p5Instance = p5Instance;
-        this.left = 0;
-        this.top = 0;
-        this.width = this.p5Instance.width;
-        this.height = this.p5Instance.height;
-    }
-    reset() {
-    }
-    initialize() { }
-    render(lastBeat, nextBeat, bpm, spectrum, centroid) {
-        this.p5Instance.background(this.p5Instance.map(1 / this.p5Instance.pow((this.p5Instance.millis() - lastBeat) / 1000 + 1, 3), 1, 0, 255, 100));
-        this.p5Instance.stroke("limegreen");
-        this.p5Instance.fill("darkgreen");
-        this.p5Instance.strokeWeight(1);
-        this.p5Instance.beginShape();
-        this.p5Instance.vertex(this.left, this.top + this.height);
-        // compute a running average of values to avoid very
-        // localized energy from triggering a beat.
-        for (let i = 0; i < spectrum.length; i++) {
-            this.p5Instance.vertex(
-            //left + map(i, 0, spectrum.length, 0, w),
-            // Distribute the spectrum values on a logarithmic scale
-            // We do this because as you go higher in the spectrum
-            // the same perceptible difference in tone requires a
-            // much larger chang in frequency.
-            this.left +
-                this.p5Instance.map(this.p5Instance.log(i), 0, this.p5Instance.log(spectrum.length), 0, this.width), 
-            // Spectrum values range from 0 to 255
-            this.top + this.p5Instance.map(spectrum[i], 0, 255, this.height, 0));
-        }
-        this.p5Instance.vertex(this.left + this.width, this.top + this.height);
-        this.p5Instance.endShape(this.p5Instance.CLOSE);
-        // this is the range of frequencies covered by the FFT
-        let nyquist = 22050;
-        // the mean_freq_index calculation is for the display.
-        // centroid frequency / hz per bucket
-        let mean_freq_index = centroid / (nyquist / spectrum.length);
-        this.p5Instance.stroke("red");
-        // convert index to x value using a logarithmic x axis
-        let cx = this.p5Instance.map(this.p5Instance.log(mean_freq_index), 0, this.p5Instance.log(spectrum.length), 0, this.p5Instance.width);
-        this.p5Instance.line(cx, 0, cx, this.height);
-    }
-}
-
 class AbstractGifRenderer {
     constructor(p5) {
         this.p5 = p5;
@@ -375,7 +331,10 @@ class AbstractGifRenderer {
             });
         });
     }
-    render(lastBeat, nextBeat, bpm, spectrum, centroid) {
+    render(lastBeat, nextBeat, bpm) {
+        if (isNaN(bpm)) {
+            bpm = 128;
+        }
         this.detectBeats(lastBeat, bpm);
         const intervalLength = 60000 / bpm * this.getIntervalLength();
         const traveledTime = this.p5.millis() - this.lastPeakBeat;
@@ -391,7 +350,6 @@ class AbstractGifRenderer {
         const realTraveledTime = lastBeat - this.lastPeakBeat;
         const realPercent = realTraveledTime / intervalLength;
         if (realPercent > this.getGoalPercentOff()) {
-            // console.log("BEAT " + lastBeat + " " + (lastBeat - this.lastPeakBeat) + " " + intervalLength);
             if (lastBeat - this.lastPeakBeat > intervalLength + 100) {
                 console.log("WOAH!");
             }
@@ -415,60 +373,92 @@ class DancingShape extends AbstractGifRenderer {
     }
 }
 
-let mic;
+class LaunchpadMapping {
+    constructor(navigator, p5Instance, p5Constructors, setActiveRenderer) {
+        this.p5Instance = p5Instance;
+        this.p5Constructors = p5Constructors;
+        this.setActiveRenderer = setActiveRenderer;
+        this.rendererConfig = [];
+        this.launchpadAdapter = new LaunchpadAdapter(navigator);
+    }
+    init() {
+        const couldRenderer = new CloudsRenderer(this.p5Instance, this.p5Constructors);
+        couldRenderer.initialize();
+        this.rendererConfig.push({
+            renderer: couldRenderer,
+            color: LaunchpadColor.GREEN,
+            x: 0,
+            y: 0,
+        });
+        this.setActiveRenderer(couldRenderer);
+        const hypercolorRenderer = new HypercolorRenderer(this.p5Instance, this.p5Constructors);
+        hypercolorRenderer.initialize();
+        this.rendererConfig.push({
+            renderer: hypercolorRenderer,
+            color: LaunchpadColor.RED,
+            x: 1,
+            y: 0,
+        });
+        // Gif Renderers
+        const dancingShapeRenderer = new DancingShape(this.p5Instance);
+        dancingShapeRenderer.initialize();
+        this.rendererConfig.push({
+            renderer: dancingShapeRenderer,
+            color: LaunchpadColor.LIGHT_BLUE,
+            x: 2,
+            y: 0,
+        });
+    }
+    watchRendererConfig(config) {
+        this.launchpadAdapter.changeMidiColor(config.x, config.y, config.color);
+        this.launchpadAdapter.subscribeMidiPressed(config.x, config.y, () => {
+            this.setRendererActive(config);
+        });
+    }
+    setRendererActive(config) {
+        if (this.activeRenderer != null) {
+            this.launchpadAdapter.changeMidiColor(this.activeRenderer[0], this.activeRenderer[1], this.activeRenderer[2]);
+        }
+        this.launchpadAdapter.changeMidiColor(config.x, config.y, LaunchpadColor.WHITE);
+        this.activeRenderer = [config.x, config.y, config.color];
+        this.setActiveRenderer(config.renderer);
+    }
+    touchStarted() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.launchpadAdapter.init();
+            this.rendererConfig.forEach((config) => this.watchRendererConfig(config));
+            this.setRendererActive(this.rendererConfig[0]);
+        });
+    }
+}
+
 let p5Constructors = window.p5;
 let p5Instance = window;
-let fft;
 let beats = new BeatAwareStack();
 let activeRenderer;
-let hypercolorRenderer;
-let squiggleRenderer;
-let cloudsRenderer;
-let shapesRenderer;
-let dancingShapeRenderer;
 let mixxxAdapter;
-let launchpadAdapter;
+let launchpadMapping;
 function setup() {
     p5Instance.createCanvas(window.innerWidth, window.innerHeight, p5Instance.WEBGL);
     // turn off the createGraphics layers stroke
     p5Instance.noStroke();
-    // Create an Audio input
-    mic = new p5Constructors.AudioIn();
-    // start the Audio Input.
-    // By default, it does not .connect() (to the computer speakers)
-    mic.start();
-    fft = new p5Constructors.FFT();
-    fft.setInput(mic);
-    new ShapeRenderer(p5Instance, p5Constructors);
-    new WaveRenderer(p5Instance);
-    hypercolorRenderer = new HypercolorRenderer(p5Instance, p5Constructors);
-    squiggleRenderer = new SquiggleRenderer(p5Instance, p5Constructors);
-    cloudsRenderer = new CloudsRenderer(p5Instance, p5Constructors);
-    shapesRenderer = new ShapesRenderer(p5Instance, p5Constructors);
-    hypercolorRenderer.initialize();
-    squiggleRenderer.initialize();
-    cloudsRenderer.initialize();
-    shapesRenderer.initialize();
-    // Gif Renderers
-    dancingShapeRenderer = new DancingShape(p5Instance);
-    dancingShapeRenderer.initialize();
-    activeRenderer = dancingShapeRenderer;
     mixxxAdapter = new MixxxAdapter(navigator, beats, p5Instance);
-    launchpadAdapter = new LaunchpadAdapter(navigator);
+    launchpadMapping = new LaunchpadMapping(navigator, p5Instance, p5Constructors, (renderer) => {
+        activeRenderer = renderer;
+    });
+    launchpadMapping.init();
 }
 function touchStarted() {
     p5Instance.getAudioContext().resume();
     mixxxAdapter.init();
-    launchpadAdapter.init();
+    launchpadMapping.touchStarted();
 }
 function draw() {
     // Pulse white on the beat, then fade out with an inverse cube curve
     let lastBeat = beats.getLastBeat(p5Instance.millis());
     let nextBeat = beats.getNextBeat(p5Instance.millis());
-    let spectrum = fft.analyze();
-    let centroid = fft.getCentroid();
     p5Instance.clear(undefined, undefined, undefined, undefined);
-    activeRenderer.render(lastBeat, nextBeat, beats.getBpm(), spectrum, centroid);
+    activeRenderer.render(lastBeat, nextBeat, beats.getBpm());
 }
 
 exports.draw = draw;
