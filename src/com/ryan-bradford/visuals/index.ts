@@ -59,7 +59,7 @@ export function setup() {
   dancingShapeRenderer = new DancingShape(p5Instance);
   dancingShapeRenderer.initialize();
 
-  activeRenderer = dancingShapeRenderer;
+  activeRenderer = cloudsRenderer;
   mixxxAdapter = new MixxxAdapter(navigator, beats, p5Instance);
   launchpadAdapter =  new LaunchpadAdapter(navigator);
 }

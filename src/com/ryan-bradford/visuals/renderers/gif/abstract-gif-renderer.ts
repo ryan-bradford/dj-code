@@ -48,13 +48,10 @@ export abstract class AbstractGifRenderer implements Renderer {
         if (
             realPercent > this.getGoalPercentOff()
         ) {
-            // console.log("BEAT " + lastBeat + " " + (lastBeat - this.lastPeakBeat) + " " + intervalLength);
             if (lastBeat - this.lastPeakBeat > intervalLength + 100) {
                 console.log("WOAH!");
             }
             this.lastPeakBeat = this.p5.millis();
-        } else {
-            // console.log("NOT_BEAT " + lastBeat + " " + (lastBeat - this.lastPeakBeat) + " " + intervalLength);
         }
     }
 

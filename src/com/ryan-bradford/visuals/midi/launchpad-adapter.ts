@@ -17,19 +17,19 @@ export class LaunchpadAdapter {
         var inputs = midi.inputs.values();
         for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
             let midiInput: WebMidi.MIDIInput = input.value;
-            console.log('midi input', input);
-            if(!midiInput.name.toLowerCase().includes("launchpad")) {
+            if(!midiInput.name.toLowerCase().includes("mk3")) {
                 continue;
             }
+            console.log('midi input', input);
             midiInput.onmidimessage = (message) => this.getMIDIMessage(message);
         }
         midi.onstatechange = (state) => this.midiOnStateChange(state);
+        MIDIMessageEvent()
+        midi.dispatchEvent({data: [144, 0, 0]);
     }
 
     getMIDIMessage(midiMessage: WebMidi.MIDIMessageEvent) {
-        if (midiMessage.data[1] == 52) {
-            console.log(midiMessage);
-        }
+        console.log(midiMessage);
     }
 
     midiOnStateChange(state: WebMidi.MIDIConnectionEvent) {

@@ -17,7 +17,6 @@ export class MixxxAdapter {
         var inputs = midi.inputs.values();
         for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
             let midiInput: WebMidi.MIDIInput = input.value;
-            console.log('midi input', input);
             if(!midiInput.name.toLowerCase().includes("port 0")) {
                 continue;
             }
@@ -34,11 +33,10 @@ export class MixxxAdapter {
     }
 
     midiOnStateChange(state: WebMidi.MIDIConnectionEvent) {
-        console.log(state);
     }
 
     onMIDIFailure() {
-        console.log('Could not access your MIDI devices.');
+        console.error('Could not access your MIDI devices.');
     }
 
 }

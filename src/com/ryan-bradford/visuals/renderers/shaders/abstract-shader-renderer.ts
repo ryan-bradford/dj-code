@@ -27,7 +27,7 @@ export abstract class AbstractShaderRenderer implements Renderer {
     }
 
     reset() {
-        
+
     }
 
     render(lastBeat: number, nextBeat: number, bpm: number, spectrum: number[], centroid: number) {
@@ -67,8 +67,6 @@ export abstract class AbstractShaderRenderer implements Renderer {
             this.currentDirectionX = 2 * Math.random() - 1;
             this.currentDirectionY = 2 * Math.random() - 1;
             this.frameDirection = this.getNextFrameDirection(this.frameDirection);
-        } else {
-            console.log("NOT_BEAT " + lastBeat + " " + (lastBeat - this.lastPeakBeat) + " " + intervalLength);
         }
     }
 
