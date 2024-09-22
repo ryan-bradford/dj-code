@@ -434,6 +434,7 @@ class LaunchpadMapping {
 
 let p5Constructors = window.p5;
 let p5Instance = window;
+let isStarted = false;
 let beats = new BeatAwareStack();
 let activeRenderer;
 let mixxxAdapter;
@@ -449,7 +450,11 @@ function setup() {
     launchpadMapping.init();
 }
 function touchStarted() {
+    if (isStarted == true) {
+        return;
+    }
     p5Instance.getAudioContext().resume();
+    isStarted = true;
     mixxxAdapter.init();
     launchpadMapping.touchStarted();
 }
