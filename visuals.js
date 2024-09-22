@@ -146,6 +146,8 @@ class AbstractShaderRenderer {
     getNextFrameDirection(direction) {
         return direction * -1;
     }
+    reset() {
+    }
     render(lastBeat, nextBeat, bpm, spectrum, centroid) {
         this.detectBeats(lastBeat, bpm);
         const intervalLength = 60000 / bpm * this.getIntervalLength();
@@ -171,7 +173,6 @@ class AbstractShaderRenderer {
         const realTraveledTime = lastBeat - this.lastPeakBeat;
         const realPercent = realTraveledTime / intervalLength;
         if (realPercent > this.getGoalPercentOff()) {
-            console.log("BEAT " + lastBeat + " " + (lastBeat - this.lastPeakBeat) + " " + intervalLength);
             if (lastBeat - this.lastPeakBeat > intervalLength + 100) {
                 console.log("WOAH!");
             }
@@ -253,6 +254,8 @@ class ShapeRenderer {
         const greenColor = new Color(0, 0, 255);
         this.colors = [redColor, blueColor, greenColor];
     }
+    reset() {
+    }
     initialize() { }
     render(lastBeat, nextBeat, bpm, spectrum, centroid) {
         this.p5Instance.millis();
@@ -317,6 +320,8 @@ class WaveRenderer {
         this.width = this.p5Instance.width;
         this.height = this.p5Instance.height;
     }
+    reset() {
+    }
     initialize() { }
     render(lastBeat, nextBeat, bpm, spectrum, centroid) {
         this.p5Instance.background(this.p5Instance.map(1 / this.p5Instance.pow((this.p5Instance.millis() - lastBeat) / 1000 + 1, 3), 1, 0, 255, 100));
@@ -353,6 +358,63 @@ class WaveRenderer {
     }
 }
 
+class AbstractGifRenderer {
+    constructor(p5) {
+        this.p5 = p5;
+        this.lastPeakBeat = 0;
+    }
+    reset() {
+    }
+    initialize() {
+        this.images = new Map();
+        Array(this.getFramesInGif()).fill(1).map((_, i) => i).forEach(i => {
+            const frameNumber = i >= 10 ? i : "0" + i;
+            this.p5.loadImage(this.getGifPath() + `frame_${frameNumber}_delay-0.04s.gif`, (loaded) => {
+                loaded.resize(this.p5.width, this.p5.height);
+                this.images.set(i, loaded);
+            });
+        });
+    }
+    render(lastBeat, nextBeat, bpm, spectrum, centroid) {
+        this.detectBeats(lastBeat, bpm);
+        const intervalLength = 60000 / bpm * this.getIntervalLength();
+        const traveledTime = this.p5.millis() - this.lastPeakBeat;
+        let percent = (traveledTime / intervalLength) % 1;
+        const frame = Math.min(Math.round(percent * this.getFramesInGif()), this.getFramesInGif() - 1);
+        if (this.images.get(frame) === undefined) {
+            return;
+        }
+        this.p5.image(this.images.get(frame), -this.p5.width / 2, -this.p5.height / 2);
+    }
+    detectBeats(lastBeat, bpm) {
+        const intervalLength = 60000 / bpm * this.getIntervalLength();
+        const realTraveledTime = lastBeat - this.lastPeakBeat;
+        const realPercent = realTraveledTime / intervalLength;
+        if (realPercent > this.getGoalPercentOff()) {
+            // console.log("BEAT " + lastBeat + " " + (lastBeat - this.lastPeakBeat) + " " + intervalLength);
+            if (lastBeat - this.lastPeakBeat > intervalLength + 100) {
+                console.log("WOAH!");
+            }
+            this.lastPeakBeat = this.p5.millis();
+        }
+    }
+    getGoalPercentOff() {
+        return 1 - .2 / this.getIntervalLength();
+    }
+}
+
+class DancingShape extends AbstractGifRenderer {
+    getGifPath() {
+        return "gif/square/";
+    }
+    getIntervalLength() {
+        return 4;
+    }
+    getFramesInGif() {
+        return 25;
+    }
+}
+
 let mic;
 let p5Constructors = window.p5;
 let p5Instance = window;
@@ -363,6 +425,7 @@ let hypercolorRenderer;
 let squiggleRenderer;
 let cloudsRenderer;
 let shapesRenderer;
+let dancingShapeRenderer;
 let mixxxAdapter;
 let launchpadAdapter;
 function setup() {
@@ -386,7 +449,10 @@ function setup() {
     squiggleRenderer.initialize();
     cloudsRenderer.initialize();
     shapesRenderer.initialize();
-    activeRenderer = hypercolorRenderer;
+    // Gif Renderers
+    dancingShapeRenderer = new DancingShape(p5Instance);
+    dancingShapeRenderer.initialize();
+    activeRenderer = dancingShapeRenderer;
     mixxxAdapter = new MixxxAdapter(navigator, beats, p5Instance);
     launchpadAdapter = new LaunchpadAdapter(navigator);
 }
