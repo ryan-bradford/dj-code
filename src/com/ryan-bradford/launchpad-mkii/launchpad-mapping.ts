@@ -42,6 +42,7 @@ export class LaunchpadMapping {
         this.configureCueButton(xOffset, deckNumber);
         this.configureForAllBeatloopButtons(xOffset, deckNumber);
         this.configureForAllHotcueButtons(xOffset, deckNumber);
+        this.configureForBreakButton(xOffset, deckNumber);
         engine.beginTimer(100, () => {
             if (deckNumber === 1) {
                 this.configureForDeckSwapButton(3, deckNumber);
@@ -232,6 +233,20 @@ export class LaunchpadMapping {
         });
         this.globalButtonSubscription.push(volumeUpSubscription);
         this.globalButtonSubscription.push(volumeDownSubscription);
+    }
+
+    private configureForBreakButton(xOffset: number, deck: number) {
+        this.launchpad.changeButtonColor(xOffset + 2, 0, Colors.LIGHT_BLUE)
+        var launchpadSubscription = this.launchpad.watchButtonPressed(xOffset + 2, 0, (event) => {
+            if (event === ButtonStatus.PRESSED) {
+                this.launchpad.changeButtonColor(xOffset + 2, 0, Colors.RED);
+                engine.beginTimer(1000, () => {
+                    this.launchpad.changeButtonColor(xOffset + 2, 0, Colors.LIGHT_BLUE);
+                }, 1)
+                this.mixxx.breakTrack(deck);
+            }
+        });
+        this.trackSubscriptions(launchpadSubscription, undefined, deck);
     }
 
     private updateDeckToggledDisplay(newDeck: number, xOffset: number) {

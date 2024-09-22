@@ -11,6 +11,7 @@ export interface Engine {
     beginTimer(timeout: number, callback: () => void) : number;
     beginTimer(timeout: number, callback: () => void, executions: number): number;
     stopTimer(timer: number);
+    brake(deck: number, val: boolean, length: number);
 }
 
 export interface Connection {

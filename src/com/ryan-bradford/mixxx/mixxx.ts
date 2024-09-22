@@ -20,6 +20,7 @@ export class Mixxx {
     private loopType: LoopType = LoopType.NORMAL;
     private rateTempShiftTimers = new Map<number, number>();
     private effectStatus = new Map<number, number | undefined>
+    private brakeStatus = new Map<number, boolean>;
 
     private static LIBRARY_CHANNEL = "[Library]";
     private static MASTER_CHANNEL = "[Master]";
@@ -37,6 +38,10 @@ export class Mixxx {
     togglePlay(deck: number) {
         var channel = this.buildChannelString(deck);
         engine.setValue(channel, 'play', !engine.getValue(channel, 'play') as any as number)
+    }
+
+    breakTrack(deck: number) {
+        engine.brake(deck, true, 1)
     }
 
     subscribeToPlayStatus(deck: number, callback: (status: PlayStatus) => void): Connection {
