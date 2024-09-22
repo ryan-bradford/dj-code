@@ -1,5 +1,5 @@
 import p5, { FFT, PeakDetect } from "p5";
-import { Renderer } from "./renderer";
+import { Renderer } from "../renderer";
 
 export class WaveRenderer implements Renderer {
   private width: number;

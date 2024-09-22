@@ -1,5 +1,5 @@
 import p5, { Shader } from "p5";
-import { Renderer } from "./renderer";
+import { Renderer } from "../renderer";
 
 export abstract class AbstractShaderRenderer implements Renderer {
     private lastPeakBeat = 0;

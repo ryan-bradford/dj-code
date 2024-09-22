@@ -1,5 +1,4 @@
 import p5, { Shader } from "p5";
-import { BeatAwareStack } from "../beats/beat-aware-stack";
 import { AbstractShaderRenderer } from "./abstract-shader-renderer";
 
 export class ShapesRenderer extends AbstractShaderRenderer {

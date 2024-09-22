@@ -1,5 +1,5 @@
 import p5 from "p5";
-import { Renderer } from "./renderer";
+import { Renderer } from "../renderer";
 
 class Color {
     constructor(public red: number, public blue: number, public green: number)  {

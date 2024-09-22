@@ -3,13 +3,13 @@ import * as test from "p5/lib/addons/p5.sound";
 import { BeatAwareStack } from "./beats/beat-aware-stack";
 import { LaunchpadAdapter } from "./midi/launchpad-adapter";
 import { MixxxAdapter } from "./midi/mixxx-adapter";
-import { CloudsRenderer } from "./renderers/clouds-renderer";
-import { HypercolorRenderer } from "./renderers/hypercolor-renderer";
+import { CloudsRenderer } from "./renderers/shaders/clouds-renderer";
+import { HypercolorRenderer } from "./renderers/shaders/hypercolor-renderer";
 import { Renderer } from "./renderers/renderer";
-import { ShapeRenderer } from "./renderers/shape-renderer";
-import { ShapesRenderer } from "./renderers/shapes-renderer";
-import { SquiggleRenderer } from "./renderers/squiggle-renderer";
-import { WaveRenderer } from "./renderers/wave-renderer";
+import { ShapeRenderer } from "./renderers/shaders/shape-renderer";
+import { ShapesRenderer } from "./renderers/shaders/shapes-renderer";
+import { SquiggleRenderer } from "./renderers/shaders/squiggle-renderer";
+import { WaveRenderer } from "./renderers/shaders/wave-renderer";
 
 let mic: P5Class.AudioIn;
 
