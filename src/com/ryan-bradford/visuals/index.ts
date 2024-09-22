@@ -7,9 +7,10 @@ import { CloudsRenderer } from "./renderers/shaders/clouds-renderer";
 import { HypercolorRenderer } from "./renderers/shaders/hypercolor-renderer";
 import { Renderer } from "./renderers/renderer";
 import { ShapeRenderer } from "./renderers/shaders/shape-renderer";
-import { ShapesRenderer } from "./renderers/shaders/shapes-renderer";
+import { ShapesRenderer } from "./renderers/shapes-renderer";
 import { SquiggleRenderer } from "./renderers/shaders/squiggle-renderer";
-import { WaveRenderer } from "./renderers/shaders/wave-renderer";
+import { WaveRenderer } from "./renderers/wave-renderer";
+import { DancingShape } from "./renderers/gif/dancing-shape-gif";
 
 let mic: P5Class.AudioIn;
 
@@ -26,6 +27,7 @@ let hypercolorRenderer: Renderer;
 let squiggleRenderer: Renderer;
 let cloudsRenderer: Renderer;
 let shapesRenderer: Renderer;
+let dancingShapeRenderer: Renderer;
 let mixxxAdapter: MixxxAdapter;
 let launchpadAdapter: LaunchpadAdapter;
 
@@ -52,7 +54,12 @@ export function setup() {
   squiggleRenderer.initialize();
   cloudsRenderer.initialize();
   shapesRenderer.initialize();
-  activeRenderer = hypercolorRenderer;
+
+  // Gif Renderers
+  dancingShapeRenderer = new DancingShape(p5Instance);
+  dancingShapeRenderer.initialize();
+
+  activeRenderer = dancingShapeRenderer;
   mixxxAdapter = new MixxxAdapter(navigator, beats, p5Instance);
   launchpadAdapter =  new LaunchpadAdapter(navigator);
 }

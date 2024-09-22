@@ -26,6 +26,10 @@ export abstract class AbstractShaderRenderer implements Renderer {
         return direction * -1;
     }
 
+    reset() {
+        
+    }
+
     render(lastBeat: number, nextBeat: number, bpm: number, spectrum: number[], centroid: number) {
         this.detectBeats(lastBeat, bpm);
         const intervalLength = 60000 / bpm * this.getIntervalLength();
@@ -56,7 +60,6 @@ export abstract class AbstractShaderRenderer implements Renderer {
         if (
             realPercent > this.getGoalPercentOff()
         ) {
-            console.log("BEAT " + lastBeat + " " + (lastBeat - this.lastPeakBeat) + " " + intervalLength);
             if (lastBeat - this.lastPeakBeat > intervalLength + 100) {
                 console.log("WOAH!");
             }

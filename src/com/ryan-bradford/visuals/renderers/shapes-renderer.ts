@@ -1,5 +1,5 @@
 import p5, { Shader } from "p5";
-import { AbstractShaderRenderer } from "./abstract-shader-renderer";
+import { AbstractShaderRenderer } from "./shaders/abstract-shader-renderer";
 
 export class ShapesRenderer extends AbstractShaderRenderer {
 

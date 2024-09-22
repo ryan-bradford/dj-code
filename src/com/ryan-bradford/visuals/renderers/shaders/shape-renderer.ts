@@ -20,6 +20,10 @@ export class ShapeRenderer implements Renderer {
         this.colors = [redColor, blueColor, greenColor];
     }
 
+    reset() {
+        
+    }
+
     initialize() { }
 
     render(lastBeat: number, nextBeat: number, bpm: number, spectrum: number[], centroid: number) {
