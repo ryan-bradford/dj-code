@@ -26,6 +26,8 @@ export class LaunchpadMapping {
         this.configureForHeadphoneVolume();
     }
 
+    // Add brake mapping
+
     private configureDeckMapping(deckNumber: number) {
         var xOffset = 0;
         if (deckNumber === 2 || deckNumber === 4) {

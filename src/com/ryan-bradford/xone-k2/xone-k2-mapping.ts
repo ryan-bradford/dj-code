@@ -39,6 +39,7 @@ export class XoneK2Mapping {
         this.configureForTempTempoChange(deck);
         this.configureForKeylock(deck);
         this.configureForHeadphoneCueMapping(deck);
+        this.configureForEffectMapping(deck);
     }
 
     private configureFaderMapping(deck: number) {
@@ -235,6 +236,18 @@ export class XoneK2Mapping {
         })
         this.midiSubscriptions.push(xonek2Subscription);
         this.mixxxSubscriptions.push(mixxxSubscriptions);
+    }
+
+    private configureForEffectMapping(deck: number) {
+        // For all 3 filters, setup filter bindings
+    }
+
+    private configureForEffect(deck: number, effectIndex: number) {
+        // Turn light to green
+        // Watch button
+            // When button is pressed, update filter
+        // Watch filter status
+            // When filter status changes, update the button color
     }
 
     private getXFromDeck(deck: number) {

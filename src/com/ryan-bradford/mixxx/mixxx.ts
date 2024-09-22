@@ -1,6 +1,20 @@
 import { engine } from "../globals";
 import { Connection } from "./engine";
 
+// https://manual.mixxx.org/2.4/en/chapters/appendix/mixxx_controls.html#control-[QuickEffectRack1_[ChannelI]_Effect1]-enabled
+
+const EFFECT_MAPPING = {
+    1: {
+        effect: "DISTORTION"
+    },
+    2: {
+        effect: "ECHO"
+    },
+    3: {
+        effect: "FILTER"
+    },
+}
+
 export class Mixxx {
 
     private loopType: LoopType = LoopType.NORMAL;
@@ -8,6 +22,20 @@ export class Mixxx {
 
     private static LIBRARY_CHANNEL = "[Library]";
     private static MASTER_CHANNEL = "[Master]";
+
+    initializeFilters() {
+        for (var i = 1; i <= 4; i++) {
+            console.log("clearing " + "[QuickEffectRack1_" + this.buildChannelString(i) + ']');
+            engine.setValue("[QuickEffectRack1_" + this.buildChannelString(i) + ']', 'enabled', true);
+            engine.setValue("[QuickEffectRack1_" + this.buildChannelString(i) + ']', 'clear', true);
+        }
+
+        // [QuickEffectRack1_[ChannelI]]mix
+
+        // [QuickEffectRack1_[ChannelI]_Effect1]enabled
+
+        // [QuickEffectRack1_[ChannelI]],super1 and [QuickEffectRack1_[ChannelI]_Effect1],enabled.
+    }
 
     togglePlay(deck: number) {
         var channel = this.buildChannelString(deck);
@@ -109,8 +137,14 @@ export class Mixxx {
     }
 
     setXEqLevel(deck: number, level: number, eq: number) {
-        var variable = "[EqualizerRack1_" + this.buildChannelString(deck) + "_Effect1]";
-        engine.setParameter(variable, "parameter" + eq, level);
+        // Get the filter that this EQ knob controls
+        // If its active
+        // if (eq === 1 && effectStatus == true) {
+            // Update the value of the filter
+        // } else {
+            var variable = "[EqualizerRack1_" + this.buildChannelString(deck) + "_Effect1]";
+            engine.setParameter(variable, "parameter" + eq, level);
+        // }
     }
 
     isSyncEnabledOnDeck(deck: number): boolean {
@@ -184,6 +218,14 @@ export class Mixxx {
 
     loadTrack(deck: number) {
         engine.setParameter(this.buildChannelString(deck), "LoadSelectedTrack", 1);
+    }
+
+    toggleActiveEffect(effectUnit: [1, 2], effectIndex: number) {
+        // Get filter status
+        // const effectUnitStatus = this.effectStatus.get(effectUnit);
+        // const effectStatus = effectUnitStatus.get(effectIndex);
+        // Toggle filter status
+        // Return current filter status
     }
 
     toggleHeadphoneCueEnabled(deck: number) {
