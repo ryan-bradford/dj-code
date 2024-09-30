@@ -36,7 +36,6 @@ export class BeatAwareStack {
             this.beatsThroughSixteen += 1;
         }
         this.lastValidBeats.push(time);
-        console.log(this.beatsThroughSixteen);
     }
 
     registerSixteenMarker(time: number) {

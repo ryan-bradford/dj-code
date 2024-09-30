@@ -11,6 +11,6 @@ export class PumpkinRenderer extends AbstractGifRenderer {
     }
 
     getFramesInGif(): number {
-        return 25;
+        return 60;
     }
 }

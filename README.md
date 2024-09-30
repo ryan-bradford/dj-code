@@ -28,3 +28,15 @@ VDJ Software:
 
 Overall Project:
 2. Improve README
+
+
+Boot Process:
+1. Connect all midi devices
+2. qmidinet -n 1 -i lo -a yes
+3. Start mixxx
+4. Ensure midi setup correctly
+5. Reset filters
+6. Test everything
+7. build visuals
+8. python -m http.server 8080 --bind 0.0.0.0 --directory ./
+9. Go to localhost:8080
