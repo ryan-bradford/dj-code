@@ -7,7 +7,7 @@ export abstract class AbstractGifRenderer implements Renderer {
 
     constructor(protected p5: p5) { }
 
-    abstract getIntervalLength(): number;
+    abstract getBeatCount(): number;
 
     abstract getFramesInGif(): number;
 
@@ -27,38 +27,16 @@ export abstract class AbstractGifRenderer implements Renderer {
         });
     }
 
-    render(lastBeat: number, nextBeat: number, bpm: number) {
+    render(percent: number, lastBeat: number, bpm: number) {
         if (isNaN(bpm)) {
             bpm = 128;
         }
-        this.detectBeats(lastBeat, bpm);
-        const intervalLength = 60000 / bpm * this.getIntervalLength();
-        const traveledTime = this.p5.millis() - this.lastPeakBeat;
-        let percent = (traveledTime / intervalLength) % 1;
         const frame = Math.min(Math.round(percent * this.getFramesInGif()), this.getFramesInGif() - 1);
         if (this.images.get(frame) === undefined) {
             return;
         }
 
         this.p5.image(this.images.get(frame), -this.p5.width / 2, -this.p5.height / 2);
-    }
-
-    private detectBeats(lastBeat: number, bpm: number) {
-        const intervalLength = 60000 / bpm * this.getIntervalLength();
-        const realTraveledTime = lastBeat - this.lastPeakBeat;
-        const realPercent = realTraveledTime / intervalLength;
-        if (
-            realPercent > this.getGoalPercentOff()
-        ) {
-            if (lastBeat - this.lastPeakBeat > intervalLength + 100) {
-                console.log("WOAH!");
-            }
-            this.lastPeakBeat = this.p5.millis();
-        }
-    }
-
-    private getGoalPercentOff() {
-        return 1 - .2 / this.getIntervalLength()
     }
 
 }

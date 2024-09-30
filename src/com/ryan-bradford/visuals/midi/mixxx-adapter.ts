@@ -27,8 +27,8 @@ export class MixxxAdapter {
 
     getMIDIMessage(midiMessage: WebMidi.MIDIMessageEvent) {
         if (midiMessage.data[1] == 52) {
-            this.beats.registerBeat(this.p5Instance.millis());
-            this.beats.setBpm(midiMessage.data[2] + 50);
+            console.log(midiMessage.data[2] + 50)
+            this.beats.registerBeat(midiMessage.data[2] + 50, this.p5Instance.millis());
         }
     }
 

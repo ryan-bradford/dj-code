@@ -5,7 +5,7 @@ export class DancingShape extends AbstractGifRenderer {
         const frameNumber = frame >= 10 ? frame : "0" + frame;
         return `gif/square/frame_${frameNumber}_delay-0.04s.gif`
     }
-    getIntervalLength(): number {
+    getBeatCount(): number {
         return 4;
     }
 

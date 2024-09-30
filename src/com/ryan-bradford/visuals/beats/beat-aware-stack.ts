@@ -1,14 +1,19 @@
-import { detectBpm, isValidRatio } from "./detect-beats";
 import { FixedStack } from "../utils/fixed-stack";
 
 export class BeatAwareStack {
 
     private currentBpm: number;
     private lastValidBeats: FixedStack<number> = new FixedStack(1);
+    private beatsThroughSixteen = 0;
 
-    registerBeat(time: number): BeatAwareStack {
-        this.lastValidBeats.push(time);
-        return this;
+    getPercentThroughMeasure(beatCount: number, currentTime: number): number {
+        const percentThroughBeat = this.getPercentThroughBeat(currentTime);
+        const remainingInMeasure = this.beatsThroughSixteen % beatCount;
+        return (remainingInMeasure + percentThroughBeat) / beatCount;
+    }
+
+    getPercentThroughBeat(currentTime: number): number {
+        return (currentTime - this.getLastBeat(currentTime)) / this.getMillisBetweenBeats();
     }
 
     getLastBeat(currentTime: number): number {
@@ -23,8 +28,25 @@ export class BeatAwareStack {
         return this.currentBpm;
     }
 
-    setBpm(bpm: number) {
+    registerBeat(bpm: number, time: number) {
         this.currentBpm = bpm;
+        if (this.lastValidBeats.isEmpty() || this.beatsThroughSixteen === 15) {
+            this.beatsThroughSixteen = 0;
+        } else {
+            this.beatsThroughSixteen += 1;
+        }
+        this.lastValidBeats.push(time);
+        console.log(this.beatsThroughSixteen);
+    }
+
+    registerSixteenMarker(time: number) {
+        if (this.lastValidBeats.isEmpty()) {
+            this.beatsThroughSixteen = 0;
+        } else if (this.getPercentThroughBeat(time) > 0.5) {
+            this.beatsThroughSixteen = 1;
+        } else {
+            this.beatsThroughSixteen = 0;
+        }
     }
 
     private getMillisBetweenBeats(): number {

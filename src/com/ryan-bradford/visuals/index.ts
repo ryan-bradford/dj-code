@@ -30,7 +30,8 @@ export function setup() {
         p5Constructors,
         (renderer) => {
             activeRenderer = renderer;
-        }
+        },
+        beats
     );
     launchpadMapping.init();
 }
@@ -47,8 +48,8 @@ export function touchStarted() {
 
 export function draw() {
     // Pulse white on the beat, then fade out with an inverse cube curve
+    let percent = beats.getPercentThroughMeasure(activeRenderer.getBeatCount(), p5Instance.millis());
     let lastBeat = beats.getLastBeat(p5Instance.millis());
-    let nextBeat = beats.getNextBeat(p5Instance.millis());
     p5Instance.clear(undefined, undefined, undefined, undefined);
-    activeRenderer.render(lastBeat, nextBeat, beats.getBpm());
+    activeRenderer.render(percent, lastBeat, beats.getBpm());
 }

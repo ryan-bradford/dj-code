@@ -16,7 +16,7 @@ export abstract class AbstractShaderRenderer implements Renderer {
 
     abstract getShader(): Shader;
 
-    abstract getIntervalLength(): number;
+    abstract getBeatCount(): number;
 
     abstract getMouseScaleValue(): number;
 
@@ -30,11 +30,8 @@ export abstract class AbstractShaderRenderer implements Renderer {
 
     }
 
-    render(lastBeat: number, nextBeat: number, bpm: number) {
+    render(percent: number, lastBeat: number, bpm: number) {
         this.detectBeats(lastBeat, bpm);
-        const intervalLength = 60000 / bpm * this.getIntervalLength();
-        const traveledTime = this.p5.millis() - this.lastPeakBeat;
-        const percent = traveledTime / intervalLength;
         let scaledValue = Math.abs(Math.sin(percent * Math.PI)) || 0;
         scaledValue = Math.max(scaledValue, .1);
 
@@ -54,7 +51,7 @@ export abstract class AbstractShaderRenderer implements Renderer {
     }
 
     private detectBeats(lastBeat: number, bpm: number) {
-        const intervalLength = 60000 / bpm * this.getIntervalLength();
+        const intervalLength = 60000 / bpm * this.getBeatCount();
         const realTraveledTime = lastBeat - this.lastPeakBeat;
         const realPercent = realTraveledTime / intervalLength;
         if (
@@ -71,7 +68,7 @@ export abstract class AbstractShaderRenderer implements Renderer {
     }
 
     private getGoalPercentOff() {
-        return 1 - .2 / this.getIntervalLength()
+        return 1 - .2 / this.getBeatCount()
     }
 
 }

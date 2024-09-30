@@ -19,7 +19,7 @@ export class SquiggleRenderer extends AbstractShaderRenderer {
         return this.shader;
     }
 
-    getIntervalLength(): number {
+    getBeatCount(): number {
         return 1;
     }
 

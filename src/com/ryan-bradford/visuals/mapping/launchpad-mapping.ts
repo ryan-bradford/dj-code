@@ -1,6 +1,5 @@
 import p5 from "p5";
 import { LaunchpadAdapter, LaunchpadColor } from "../midi/launchpad-adapter";
-import { ShapeRenderer } from "../renderers/shaders/shape-renderer";
 import { HypercolorRenderer } from "../renderers/shaders/hypercolor-renderer";
 import { SquiggleRenderer } from "../renderers/shaders/squiggle-renderer";
 import { CloudsRenderer } from "../renderers/shaders/clouds-renderer";
@@ -8,6 +7,7 @@ import { ShapesRenderer } from "../renderers/shapes-renderer";
 import { DancingShape } from "../renderers/gif/dancing-shape-gif";
 import { Renderer } from "../renderers/renderer";
 import { PumpkinRenderer } from "../renderers/gif/pumpkin-renderer";
+import { BeatAwareStack } from "../beats/beat-aware-stack";
 
 type Mapping = {
     renderer: Renderer;
@@ -25,7 +25,8 @@ export class LaunchpadMapping {
         navigator: Navigator,
         private p5Instance: p5,
         private p5Constructors: any,
-        private setActiveRenderer: (renderer: Renderer) => void
+        private setActiveRenderer: (renderer: Renderer) => void,
+        private stack: BeatAwareStack
     ) {
         this.launchpadAdapter = new LaunchpadAdapter(navigator);
     }
@@ -82,6 +83,13 @@ export class LaunchpadMapping {
         });
     }
 
+    watchReset16() {
+        this.launchpadAdapter.changeMidiColor(8, 0, LaunchpadColor.WHITE);
+        this.launchpadAdapter.subscribeMidiPressed(8, 0, () => {
+            this.stack.registerSixteenMarker(this.p5Instance.millis());
+        });
+    }
+
     setRendererActive(config: Mapping) {
         if (this.activeRenderer != null) {
             this.launchpadAdapter.changeMidiColor(this.activeRenderer[0], this.activeRenderer[1], this.activeRenderer[2])
@@ -95,5 +103,6 @@ export class LaunchpadMapping {
         await this.launchpadAdapter.init();
         this.rendererConfig.forEach((config) => this.watchRendererConfig(config))
         this.setRendererActive(this.rendererConfig[0]);
+        this.watchReset16();
     }
 }

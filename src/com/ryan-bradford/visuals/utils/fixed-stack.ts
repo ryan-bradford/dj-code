@@ -6,6 +6,7 @@ export class FixedStack<T> implements Iterable<T> {
         if (!targetLength && !array) {
             throw "BAD";
         }
+        console.log(targetLength);
         this.array = array ? array : [];
     }
 
@@ -41,6 +42,10 @@ export class FixedStack<T> implements Iterable<T> {
 
     getTopN(toGet: number): Array<T> {
         return this.array.slice(this.array.length - toGet, this.array.length);
+    }
+
+    isEmpty(): boolean {
+        return this.array.length === 0;
     }
 
 }

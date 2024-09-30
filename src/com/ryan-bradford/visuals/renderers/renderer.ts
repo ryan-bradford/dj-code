@@ -4,6 +4,8 @@ export interface Renderer {
 
     reset();
 
-    render(lastBeat: number, nextBeat: number, bpm: number);
+    render(percent: number, lastBeat: number, bpm: number);
+
+    getBeatCount(): number;
 
 }

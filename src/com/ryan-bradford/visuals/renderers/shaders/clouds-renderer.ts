@@ -19,7 +19,7 @@ export class CloudsRenderer extends AbstractShaderRenderer {
         return this.shader;
     }
 
-    getIntervalLength(): number {
+    getBeatCount(): number {
         return 1;
     }
 

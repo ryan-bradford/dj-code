@@ -6,8 +6,8 @@ export class PumpkinRenderer extends AbstractGifRenderer {
         return `gif/pumpkin/ezgif-frame-${frameNumber}.jpg`
     }
 
-    getIntervalLength(): number {
-        return 2;
+    getBeatCount(): number {
+        return 4;
     }
 
     getFramesInGif(): number {
