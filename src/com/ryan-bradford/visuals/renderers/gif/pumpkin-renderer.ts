@@ -1,12 +1,13 @@
 import { AbstractGifRenderer } from "./abstract-gif-renderer"
 
-export class DancingShape extends AbstractGifRenderer {
+export class PumpkinRenderer extends AbstractGifRenderer {
     getFileName(frame: number): string {
-        const frameNumber = frame >= 10 ? frame : "0" + frame;
-        return `gif/square/frame_${frameNumber}_delay-0.04s.gif`
+        const frameNumber = frame >= 10 ? "0" + frame : "00" + frame;
+        return `gif/pumpkin/ezgif-frame-${frameNumber}.jpg`
     }
+
     getIntervalLength(): number {
-        return 4;
+        return 2;
     }
 
     getFramesInGif(): number {

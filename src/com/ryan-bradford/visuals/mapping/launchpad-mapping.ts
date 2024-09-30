@@ -7,6 +7,7 @@ import { CloudsRenderer } from "../renderers/shaders/clouds-renderer";
 import { ShapesRenderer } from "../renderers/shapes-renderer";
 import { DancingShape } from "../renderers/gif/dancing-shape-gif";
 import { Renderer } from "../renderers/renderer";
+import { PumpkinRenderer } from "../renderers/gif/pumpkin-renderer";
 
 type Mapping = {
     renderer: Renderer;
@@ -61,6 +62,15 @@ export class LaunchpadMapping {
             renderer: dancingShapeRenderer,
             color: LaunchpadColor.LIGHT_BLUE,
             x: 2,
+            y: 0,
+        });
+
+        const pumpkinRenderer = new PumpkinRenderer(this.p5Instance);
+        pumpkinRenderer.initialize();
+        this.rendererConfig.push({
+            renderer: pumpkinRenderer,
+            color: LaunchpadColor.ORANGE,
+            x: 3,
             y: 0,
         });
     }

@@ -7,11 +7,11 @@ export abstract class AbstractGifRenderer implements Renderer {
 
     constructor(protected p5: p5) { }
 
-    abstract getGifPath(): string;
-
     abstract getIntervalLength(): number;
 
     abstract getFramesInGif(): number;
+
+    abstract getFileName(frame: number): string;
 
     reset() {
 
@@ -20,8 +20,7 @@ export abstract class AbstractGifRenderer implements Renderer {
     initialize(): void {
         this.images = new Map();
         Array(this.getFramesInGif()).fill(1).map((_, i) => i).forEach(i => {
-            const frameNumber = i >= 10 ? i : "0" + i;
-            this.p5.loadImage(this.getGifPath() + `frame_${frameNumber}_delay-0.04s.gif`, (loaded) => {
+            this.p5.loadImage(this.getFileName(i), (loaded) => {
                 loaded.resize(this.p5.width, this.p5.height);
                 this.images.set(i, loaded);
             });
