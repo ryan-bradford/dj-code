@@ -8,7 +8,7 @@ export class BeatAwareStack {
 
     getPercentThroughMeasure(beatCount: number, currentTime: number): number {
         const percentThroughBeat = this.getPercentThroughBeat(currentTime);
-        const remainingInMeasure = this.beatsThroughSixteen % beatCount;
+        const remainingInMeasure = (this.beatsThroughSixteen - 1) % beatCount;
         return (remainingInMeasure + percentThroughBeat) / beatCount;
     }
 
@@ -30,21 +30,22 @@ export class BeatAwareStack {
 
     registerBeat(bpm: number, time: number) {
         this.currentBpm = bpm;
-        if (this.lastValidBeats.isEmpty() || this.beatsThroughSixteen === 15) {
-            this.beatsThroughSixteen = 0;
+        if (this.lastValidBeats.isEmpty() || this.beatsThroughSixteen === 16) {
+            this.beatsThroughSixteen = 1;
         } else {
             this.beatsThroughSixteen += 1;
         }
+        console.log(this.beatsThroughSixteen);
         this.lastValidBeats.push(time);
     }
 
     registerSixteenMarker(time: number) {
         if (this.lastValidBeats.isEmpty()) {
-            this.beatsThroughSixteen = 0;
-        } else if (this.getPercentThroughBeat(time) > 0.5) {
             this.beatsThroughSixteen = 1;
-        } else {
+        } else if (this.getPercentThroughBeat(time) > 0.5) {
             this.beatsThroughSixteen = 0;
+        } else {
+            this.beatsThroughSixteen = 1;
         }
     }
 
