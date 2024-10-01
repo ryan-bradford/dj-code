@@ -23,15 +23,19 @@ export abstract class AbstractGifRenderer implements Renderer {
 
     }
 
-    initialize(): void {
+    async initialize(): Promise<void> {
         this.images = new Map();
-        Array(this.getFramesInGif()).fill(1).map((_, i) => i).forEach(i => {
+        for (var i = 0; i < this.getFramesInGif(); i++) {
+            console.log(i);
+            this.images.set(i, await this.loadImage(i, true));
+        }
+    }
+
+    async loadImage(frame: number, shouldRetry: boolean): Promise<p5.Image> {
+        return new Promise((resolve, reject) => {
             const offset = this.isZeroBased() ? 0 : 1;
-            this.p5.loadImage(this.getFileName(i + offset), (loaded) => {
-                loaded.resize(this.p5.width, this.p5.height);
-                this.images.set(i, loaded);
-            });
-        });
+            this.p5.loadImage(this.getFileName(frame + offset), resolve, reject);
+        })
     }
 
     render(percent: number, lastBeat: number, bpm: number) {
@@ -40,6 +44,7 @@ export abstract class AbstractGifRenderer implements Renderer {
         }
         const frame = ((Math.min(Math.round(percent * this.getFramesInGif()), this.getFramesInGif())) + this.getFirstFrame()) % this.getFramesInGif();
         if (this.images.get(frame) === undefined) {
+            console.log(frame);
             return;
         }
 

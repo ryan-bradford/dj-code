@@ -35,7 +35,6 @@ export class BeatAwareStack {
         } else {
             this.beatsThroughSixteen += 1;
         }
-        console.log(this.beatsThroughSixteen);
         this.lastValidBeats.push(time);
     }
 

@@ -12,7 +12,7 @@ export abstract class AbstractShaderRenderer implements Renderer {
 
     constructor(protected p5: p5) { }
 
-    abstract initialize(): void;
+    abstract initialize(): Promise<void>;
 
     abstract getShader(): Shader;
 

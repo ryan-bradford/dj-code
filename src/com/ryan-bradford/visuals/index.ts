@@ -13,8 +13,9 @@ let beats: BeatAwareStack = new BeatAwareStack();
 let activeRenderer: Renderer;
 let mixxxAdapter: MixxxAdapter;
 let launchpadMapping: LaunchpadMapping;
+let finishedInit = false;
 
-export function setup() {
+export async function setup() {
     p5Instance.createCanvas(
         window.innerWidth,
         window.innerHeight,
@@ -33,11 +34,12 @@ export function setup() {
         },
         beats
     );
-    launchpadMapping.init();
+    await launchpadMapping.init();
+    finishedInit = true;
 }
 
-export function touchStarted() {
-    if (isStarted == true) {
+export async function touchStarted() {
+    if (isStarted == true || finishedInit == false) {
         return;
     }
     (p5Instance.getAudioContext() as AudioContext).resume();

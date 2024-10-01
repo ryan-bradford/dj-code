@@ -8,7 +8,7 @@ export class HypercolorRenderer extends AbstractShaderRenderer {
         super(p5);
     }
 
-    initialize() {
+    async initialize(): Promise<void> {
         this.shader = this.p5.loadShader(
             "shaders/hypercolor.vert",
             "shaders/hypercolor.frag"

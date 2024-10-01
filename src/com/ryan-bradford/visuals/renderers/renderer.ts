@@ -1,6 +1,6 @@
 export interface Renderer {
 
-    initialize();
+    initialize(): Promise<void>;
 
     reset();
 

@@ -8,6 +8,7 @@ import { DancingShape } from "../renderers/gif/dancing-shape-gif";
 import { Renderer } from "../renderers/renderer";
 import { PumpkinRenderer } from "../renderers/gif/pumpkin-renderer";
 import { BeatAwareStack } from "../beats/beat-aware-stack";
+import { EvilGoatRenderer } from "../renderers/gif/evil-goat-renderer";
 
 type Mapping = {
     renderer: Renderer;
@@ -31,12 +32,12 @@ export class LaunchpadMapping {
         this.launchpadAdapter = new LaunchpadAdapter(navigator);
     }
 
-    init() {
+    async init() {
         const couldRenderer = new CloudsRenderer(
             this.p5Instance,
             this.p5Constructors
         );
-        couldRenderer.initialize();
+        await couldRenderer.initialize();
         this.rendererConfig.push({
             renderer: couldRenderer,
             color: LaunchpadColor.GREEN,
@@ -48,7 +49,7 @@ export class LaunchpadMapping {
             this.p5Instance,
             this.p5Constructors
         );
-        hypercolorRenderer.initialize();
+        await hypercolorRenderer.initialize();
         this.rendererConfig.push({
             renderer: hypercolorRenderer,
             color: LaunchpadColor.RED,
@@ -58,7 +59,7 @@ export class LaunchpadMapping {
 
         // Gif Renderers
         const dancingShapeRenderer = new DancingShape(this.p5Instance);
-        dancingShapeRenderer.initialize();
+        await dancingShapeRenderer.initialize();
         this.rendererConfig.push({
             renderer: dancingShapeRenderer,
             color: LaunchpadColor.LIGHT_BLUE,
@@ -67,11 +68,20 @@ export class LaunchpadMapping {
         });
 
         const pumpkinRenderer = new PumpkinRenderer(this.p5Instance);
-        pumpkinRenderer.initialize();
+        await pumpkinRenderer.initialize();
         this.rendererConfig.push({
             renderer: pumpkinRenderer,
             color: LaunchpadColor.ORANGE,
             x: 3,
+            y: 0,
+        });
+
+        const goatRnederer = new EvilGoatRenderer(this.p5Instance);
+        await goatRnederer.initialize();
+        this.rendererConfig.push({
+            renderer: goatRnederer,
+            color: LaunchpadColor.RED,
+            x: 4,
             y: 0,
         });
     }

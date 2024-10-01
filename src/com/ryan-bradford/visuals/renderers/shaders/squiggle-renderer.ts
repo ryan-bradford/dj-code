@@ -8,7 +8,7 @@ export class SquiggleRenderer extends AbstractShaderRenderer {
         super(p5);
     }
 
-    initialize() {
+    async initialize(): Promise<void> {
         this.shader = this.p5.loadShader(
             "shaders/hypercolor.vert",
             "shaders/squiggle.frag"
