@@ -30,7 +30,6 @@ export class LaunchpadAdapter {
             if(!midiInput.name.toLowerCase().includes("mk3 mi")) {
                 return;
             }
-            console.log('midi input', midiInput);
             midiInput.onmidimessage = (message) => this.getMIDIMessage(message);
         });
 
@@ -52,7 +51,6 @@ export class LaunchpadAdapter {
     }
 
     getMIDIMessage(midiMessage: MIDIMessageEvent) {
-        console.log(midiMessage);
         const midiKey = midiMessage.data[1];
         const isPress = midiMessage.data[2] === 127;
         if (isPress && this.callbacks.has(midiKey)) {

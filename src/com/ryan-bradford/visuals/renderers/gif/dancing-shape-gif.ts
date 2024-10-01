@@ -12,4 +12,8 @@ export class DancingShape extends AbstractGifRenderer {
     getFramesInGif(): number {
         return 25;
     }
+
+    isZeroBased(): boolean {
+        return true;
+    }
 }

@@ -7,10 +7,18 @@ export class PumpkinRenderer extends AbstractGifRenderer {
     }
 
     getBeatCount(): number {
-        return 4;
+        return 8;
     }
 
     getFramesInGif(): number {
         return 60;
+    }
+
+    getFirstFrame(): number {
+        return 27;
+    }
+
+    isZeroBased(): boolean {
+        return false;
     }
 }

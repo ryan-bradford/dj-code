@@ -28,7 +28,6 @@ export class Mixxx {
     initializeFilters() {
         this.effectStatus = new Map();
         for (var i = 1; i <= 4; i++) {
-            console.log("clearing " + "[QuickEffectRack1_" + this.buildChannelString(i) + ']');
             engine.setValue("[QuickEffectRack1_" + this.buildChannelString(i) + ']', 'enabled', true);
             engine.setValue(`[QuickEffectRack1_${this.buildChannelString(i)}]`, 'loaded_chain_preset', 0);
             this.effectStatus.set(i, undefined);

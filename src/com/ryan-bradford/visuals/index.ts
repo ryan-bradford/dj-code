@@ -47,6 +47,9 @@ export function touchStarted() {
 }
 
 export function draw() {
+    if (isStarted === false) {
+        return;
+    }
     // Pulse white on the beat, then fade out with an inverse cube curve
     let percent = beats.getPercentThroughMeasure(activeRenderer.getBeatCount(), p5Instance.millis());
     let lastBeat = beats.getLastBeat(p5Instance.millis());

@@ -17,7 +17,7 @@ export class MixxxAdapter {
         var inputs = midi.inputs.values();
         for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
             let midiInput: WebMidi.MIDIInput = input.value;
-            if(!midiInput.name.toLowerCase().includes("port 0")) {
+            if (!midiInput.name.toLowerCase().includes("iac driver")) {
                 continue;
             }
             midiInput.onmidimessage = (message) => this.getMIDIMessage(message);

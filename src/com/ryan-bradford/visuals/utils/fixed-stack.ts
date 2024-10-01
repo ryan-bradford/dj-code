@@ -6,7 +6,6 @@ export class FixedStack<T> implements Iterable<T> {
         if (!targetLength && !array) {
             throw "BAD";
         }
-        console.log(targetLength);
         this.array = array ? array : [];
     }
 

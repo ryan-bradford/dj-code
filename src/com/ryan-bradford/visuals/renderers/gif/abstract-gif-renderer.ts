@@ -13,6 +13,12 @@ export abstract class AbstractGifRenderer implements Renderer {
 
     abstract getFileName(frame: number): string;
 
+    abstract isZeroBased(): boolean;
+
+    getFirstFrame(): number {
+        return 1;
+    }
+
     reset() {
 
     }
@@ -20,9 +26,10 @@ export abstract class AbstractGifRenderer implements Renderer {
     initialize(): void {
         this.images = new Map();
         Array(this.getFramesInGif()).fill(1).map((_, i) => i).forEach(i => {
-            this.p5.loadImage(this.getFileName(i+1), (loaded) => {
+            const offset = this.isZeroBased() ? 0 : 1;
+            this.p5.loadImage(this.getFileName(i + offset), (loaded) => {
                 loaded.resize(this.p5.width, this.p5.height);
-                this.images.set(i+1, loaded);
+                this.images.set(i, loaded);
             });
         });
     }
@@ -31,9 +38,8 @@ export abstract class AbstractGifRenderer implements Renderer {
         if (isNaN(bpm)) {
             bpm = 128;
         }
-        const frame = Math.max(1, Math.min(Math.round(percent * this.getFramesInGif()), this.getFramesInGif()));
+        const frame = ((Math.min(Math.round(percent * this.getFramesInGif()), this.getFramesInGif())) + this.getFirstFrame()) % this.getFramesInGif();
         if (this.images.get(frame) === undefined) {
-            console.log("skipping", frame, percent);
             return;
         }
 
