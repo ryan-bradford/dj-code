@@ -67,6 +67,9 @@ export class LaunchpadAdapter {
     }
 
     changeMidiColor(x: number, y: number, color: number) {
+        if (this.output == null) {
+            return;
+        }
         this.output.send([0x90, this.getButtonMidiId(x, y), color]);
     }
 

@@ -4,6 +4,7 @@ import { BeatAwareStack } from "./beats/beat-aware-stack";
 import { MixxxAdapter } from "./midi/mixxx-adapter";
 import { Renderer } from "./renderers/renderer";
 import { LaunchpadMapping } from "./mapping/launchpad-mapping";
+import { Filter } from "./filter/filter";
 
 let p5Constructors: any = (window as any).p5;
 let p5Instance: P5Class = window as any;
@@ -11,6 +12,7 @@ let p5Instance: P5Class = window as any;
 let isStarted = false;
 let beats: BeatAwareStack = new BeatAwareStack();
 let activeRenderer: Renderer;
+let activeFilter: Filter;
 let mixxxAdapter: MixxxAdapter;
 let launchpadMapping: LaunchpadMapping;
 let finishedInit = false;
@@ -31,6 +33,9 @@ export async function setup() {
         p5Constructors,
         (renderer) => {
             activeRenderer = renderer;
+        },
+        (filter) => {
+            activeFilter = filter;
         },
         beats
     );
@@ -53,8 +58,14 @@ export function draw() {
         return;
     }
     // Pulse white on the beat, then fade out with an inverse cube curve
-    let percent = beats.getPercentThroughMeasure(activeRenderer.getBeatCount(), p5Instance.millis());
     let lastBeat = beats.getLastBeat(p5Instance.millis());
     p5Instance.clear(undefined, undefined, undefined, undefined);
-    activeRenderer.render(percent, lastBeat, beats.getBpm());
+    if (activeFilter) {
+        let percent = beats.getPercentThroughMeasure(activeFilter.getBeatCount(), p5Instance.millis());
+        activeFilter.render(percent, lastBeat, beats.getBpm());
+    }
+    if (activeRenderer) {
+        let percent = beats.getPercentThroughMeasure(activeRenderer.getBeatCount(), p5Instance.millis());
+        activeRenderer.render(percent, lastBeat, beats.getBpm());
+    }
 }

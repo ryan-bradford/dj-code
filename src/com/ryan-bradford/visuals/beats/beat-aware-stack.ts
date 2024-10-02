@@ -9,7 +9,8 @@ export class BeatAwareStack {
     getPercentThroughMeasure(beatCount: number, currentTime: number): number {
         const percentThroughBeat = this.getPercentThroughBeat(currentTime);
         const remainingInMeasure = (this.beatsThroughSixteen - 1) % beatCount;
-        return (remainingInMeasure + percentThroughBeat) / beatCount;
+        const percent = ((remainingInMeasure + percentThroughBeat) / beatCount);
+        return percent < 0 ? 1 + percent : percent;
     }
 
     getPercentThroughBeat(currentTime: number): number {

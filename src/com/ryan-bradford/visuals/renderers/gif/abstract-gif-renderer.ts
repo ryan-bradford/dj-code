@@ -26,7 +26,6 @@ export abstract class AbstractGifRenderer implements Renderer {
     async initialize(): Promise<void> {
         this.images = new Map();
         for (var i = 0; i < this.getFramesInGif(); i++) {
-            console.log(i);
             this.images.set(i, await this.loadImage(i, true));
         }
     }
@@ -44,7 +43,6 @@ export abstract class AbstractGifRenderer implements Renderer {
         }
         const frame = ((Math.min(Math.round(percent * this.getFramesInGif()), this.getFramesInGif())) + this.getFirstFrame()) % this.getFramesInGif();
         if (this.images.get(frame) === undefined) {
-            console.log(frame);
             return;
         }
 
