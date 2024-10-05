@@ -1,8 +1,10 @@
 export interface Renderer {
 
-    initialize(): Promise<void>;
+    load(): Promise<void>;
 
-    reset();
+    unload(): void;
+
+    isLoaded(): boolean;
 
     render(percent: number, lastBeat: number, bpm: number);
 

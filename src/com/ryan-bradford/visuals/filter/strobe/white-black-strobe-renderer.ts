@@ -2,7 +2,7 @@ import { AbstractStrobeFilter, Color } from "./abstract-strobe-filter";
 
 export class WhiteBlackStrobeFilter extends AbstractStrobeFilter {
     getStrobeFrequency(): number {
-        return 4;
+        return 8;
     }
 
     getColors(): Array<Color> {

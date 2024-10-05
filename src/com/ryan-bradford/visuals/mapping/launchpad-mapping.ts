@@ -15,6 +15,7 @@ import { BlankRenderer } from "../renderers/blank-renderer";
 import { HalloweenStrobeFilter } from "../filter/strobe/halloween-strobe-renderer";
 import { RedBlackStrobeFilter } from "../filter/strobe/red-black-strobe-renderer";
 import { WhiteBlackStrobeFilter } from "../filter/strobe/white-black-strobe-renderer";
+import { HandsRenderer } from "../renderers/gif/hands-renderer";
 
 type Mapping = {
     renderer: Renderer | Filter;
@@ -26,7 +27,8 @@ type Mapping = {
 export class LaunchpadMapping {
     private launchpadAdapter: LaunchpadAdapter;
     private rendererConfig: Array<Mapping> = [];
-    private activeRenderer: [number, number, number];
+    private activeRenderer: [number, number, number, Renderer];
+    private loadedRenderers: [number, number, number, Renderer] = null;
 
     private filterConfig: Array<Mapping> = [];
     private activeFilter: [number, number, number];
@@ -45,106 +47,92 @@ export class LaunchpadMapping {
 
     async init() {
         const blank = new BlankRenderer(this.p5Instance);
-        await blank.initialize();
+        await blank.load();
         this.rendererConfig.push({
             renderer: blank,
             color: LaunchpadColor.GREEN,
-            x: 5,
-            y: 0,
-        });
-
-        const couldRenderer = new CloudsRenderer(
-            this.p5Instance,
-            this.p5Constructors
-        );
-        await couldRenderer.initialize();
-        this.rendererConfig.push({
-            renderer: couldRenderer,
-            color: LaunchpadColor.GREEN,
             x: 0,
-            y: 0,
-        });
-        const hypercolorRenderer = new HypercolorRenderer(
-            this.p5Instance,
-            this.p5Constructors
-        );
-        await hypercolorRenderer.initialize();
-        this.rendererConfig.push({
-            renderer: hypercolorRenderer,
-            color: LaunchpadColor.RED,
-            x: 1,
             y: 0,
         });
 
         // Gif Renderers
         const dancingShapeRenderer = new DancingShape(this.p5Instance);
-        await dancingShapeRenderer.initialize();
         this.rendererConfig.push({
             renderer: dancingShapeRenderer,
             color: LaunchpadColor.LIGHT_BLUE,
-            x: 2,
-            y: 0,
-        });
-
-        const pumpkinRenderer = new PumpkinRenderer(this.p5Instance);
-        await pumpkinRenderer.initialize();
-        this.rendererConfig.push({
-            renderer: pumpkinRenderer,
-            color: LaunchpadColor.ORANGE,
             x: 3,
             y: 0,
         });
 
+        const pumpkinRenderer = new PumpkinRenderer(this.p5Instance);
+        this.rendererConfig.push({
+            renderer: pumpkinRenderer,
+            color: LaunchpadColor.ORANGE,
+            x: 4,
+            y: 0,
+        });
+
         const goatRnederer = new EvilGoatRenderer(this.p5Instance);
-        await goatRnederer.initialize();
         this.rendererConfig.push({
             renderer: goatRnederer,
             color: LaunchpadColor.RED,
-            x: 4,
+            x: 5,
+            y: 0,
+        });
+
+        const handsRenderer = new HandsRenderer(this.p5Instance);
+        this.rendererConfig.push({
+            renderer: handsRenderer,
+            color: LaunchpadColor.LIGHT_BLUE,
+            x: 6,
             y: 0,
         });
 
 
         this.filterConfig.push({
             renderer: null,
-            color: LaunchpadColor.RED,
+            color: LaunchpadColor.WHITE,
             x: 0,
-            y: 1,
+            y: 7,
         })
 
         this.filterConfig.push({
             renderer: new WhiteBlackStrobeFilter(this.p5Instance),
-            color: LaunchpadColor.RED,
-            x: 0,
-            y: 2,
+            color: LaunchpadColor.GREEN,
+            x: 1,
+            y: 7,
+        })
+
+        this.filterConfig.push({
+            renderer: new RainbowStrobeFilter(this.p5Instance),
+            color: LaunchpadColor.GREEN,
+            x: 2,
+            y: 7,
         })
 
         this.filterConfig.push({
             renderer: new RedBlackStrobeFilter(this.p5Instance),
             color: LaunchpadColor.RED,
-            x: 0,
-            y: 3,
+            x: 3,
+            y: 7,
         })
 
         this.filterConfig.push({
             renderer: new HalloweenStrobeFilter(this.p5Instance),
-            color: LaunchpadColor.RED,
-            x: 0,
-            y: 4,
-        })
-
-        this.filterConfig.push({
-            renderer: new RainbowStrobeFilter(this.p5Instance),
-            color: LaunchpadColor.RED,
-            x: 0,
-            y: 5,
+            color: LaunchpadColor.ORANGE,
+            x: 4,
+            y: 7,
         })
     }
 
     watchRendererConfig(config: Mapping) {
         this.launchpadAdapter.changeMidiColor(config.x, config.y, config.color);
         this.launchpadAdapter.subscribeMidiPressed(config.x, config.y, () => {
-            this.setRendererActive(config);
+            if ((config.renderer as Renderer).isLoaded()) {
+                this.setRendererActive(config);
+            } else {
+                this.setLoadedRenderer(config);
+            }
         });
     }
 
@@ -165,10 +153,23 @@ export class LaunchpadMapping {
     setRendererActive(config: Mapping) {
         if (this.activeRenderer != null) {
             this.launchpadAdapter.changeMidiColor(this.activeRenderer[0], this.activeRenderer[1], this.activeRenderer[2])
+            this.activeRenderer[3].unload();
         }
         this.launchpadAdapter.changeMidiColor(config.x, config.y, LaunchpadColor.WHITE);
-        this.activeRenderer = [config.x, config.y, config.color]
-        this.setActiveRenderer(config.renderer);
+        this.activeRenderer = [config.x, config.y, config.color, config.renderer as Renderer]
+        this.setActiveRenderer(config.renderer as Renderer);
+    }
+
+    setLoadedRenderer(config: Mapping) {
+        if (this.loadedRenderers != null && this.loadedRenderers[3] !== this.activeRenderer[3]) {
+            this.launchpadAdapter.changeMidiColor(this.loadedRenderers[0], this.loadedRenderers[1], this.loadedRenderers[2])
+            this.loadedRenderers[3].unload();
+        }
+        this.launchpadAdapter.changeMidiColor(config.x, config.y, LaunchpadColor.LIGHT_BLUE);
+        this.loadedRenderers = [config.x, config.y, config.color, config.renderer as Renderer];
+        (config.renderer as Renderer).load().then(() => {
+            this.launchpadAdapter.changeMidiColor(config.x, config.y, LaunchpadColor.GREEN);
+        })
     }
 
     setFilterActive(config: Mapping) {
@@ -177,7 +178,7 @@ export class LaunchpadMapping {
         }
         this.launchpadAdapter.changeMidiColor(config.x, config.y, LaunchpadColor.LIGHT_BLUE);
         this.activeFilter = [config.x, config.y, config.color]
-        this.setActiveFilter(config.renderer);
+        this.setActiveFilter(config.renderer as Filter);
     }
 
     async touchStarted() {
@@ -185,7 +186,6 @@ export class LaunchpadMapping {
         this.rendererConfig.forEach((config) => this.watchRendererConfig(config))
         this.filterConfig.forEach((config) => this.watchFilterConfig(config))
         this.setRendererActive(this.rendererConfig[0]);
-        // TOOD: Remove
         this.setFilterActive(this.filterConfig[0]);
         this.watchReset16();
     }

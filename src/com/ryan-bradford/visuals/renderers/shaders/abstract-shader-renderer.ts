@@ -12,7 +12,7 @@ export abstract class AbstractShaderRenderer implements Renderer {
 
     constructor(protected p5: p5) { }
 
-    abstract initialize(): Promise<void>;
+    abstract load(): Promise<void>;
 
     abstract getShader(): Shader;
 
@@ -22,12 +22,12 @@ export abstract class AbstractShaderRenderer implements Renderer {
 
     abstract getFrameScaleValue(): number;
 
+    abstract isLoaded(): boolean;
+
+    abstract unload(): void;
+
     public getNextFrameDirection(direction: number): number {
         return direction * -1;
-    }
-
-    reset() {
-
     }
 
     render(percent: number, lastBeat: number, bpm: number) {

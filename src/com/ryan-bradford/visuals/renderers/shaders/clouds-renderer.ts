@@ -8,11 +8,19 @@ export class CloudsRenderer extends AbstractShaderRenderer {
         super(p5);
     }
 
-    async initialize(): Promise<void> {
+    async load(): Promise<void> {
         this.shader = this.p5.loadShader(
             "shaders/hypercolor.vert",
             "shaders/clouds.frag"
         );
+    }
+
+    isLoaded() {
+        return this.shader != null;
+    }
+
+    unload(): void {
+        this.shader = null;
     }
 
     getShader(): p5.Shader {

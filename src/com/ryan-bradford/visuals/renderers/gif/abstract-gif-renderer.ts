@@ -3,7 +3,7 @@ import { Renderer } from "../renderer";
 
 export abstract class AbstractGifRenderer implements Renderer {
     private lastPeakBeat = 0;
-    private images: Map<number, p5.Image>;
+    private images: Map<number, p5.Image> = new Map();
 
     constructor(protected p5: p5) { }
 
@@ -15,15 +15,25 @@ export abstract class AbstractGifRenderer implements Renderer {
 
     abstract isZeroBased(): boolean;
 
+    padNumber(n: number, m: number): string {
+        const zeroes = '0'.repeat(m - n.toString().length);
+        return zeroes + n.toString();
+    }
+
     getFirstFrame(): number {
         return 1;
     }
 
-    reset() {
-
+    unload() {
+        this.images = new Map();
+        this.p5.clearStorage();
     }
 
-    async initialize(): Promise<void> {
+    isLoaded(): boolean {
+        return this.images.size > 0;
+    }
+
+    async load(): Promise<void> {
         this.images = new Map();
         for (var i = 0; i < this.getFramesInGif(); i++) {
             this.images.set(i, await this.loadImage(i, true));
@@ -33,7 +43,10 @@ export abstract class AbstractGifRenderer implements Renderer {
     async loadImage(frame: number, shouldRetry: boolean): Promise<p5.Image> {
         return new Promise((resolve, reject) => {
             const offset = this.isZeroBased() ? 0 : 1;
-            this.p5.loadImage(this.getFileName(frame + offset), resolve, reject);
+            this.p5.loadImage(this.getFileName(frame + offset), (image) => {
+                image.resize(this.p5.width, this.p5.height);
+                resolve(image);
+            }, reject);
         })
     }
 
