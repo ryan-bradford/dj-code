@@ -81,7 +81,7 @@ class BeatAwareStack {
         const percentThroughBeat = this.getPercentThroughBeat(currentTime);
         const remainingInMeasure = (this.beatsThroughSixteen - 1) % beatCount;
         const percent = ((remainingInMeasure + percentThroughBeat) / beatCount);
-        return percent < 0 ? 1 + percent : percent;
+        return (percent < 0 ? 1 + percent : percent) % 1;
     }
     getPercentThroughBeat(currentTime) {
         return (currentTime - this.getLastBeat(currentTime)) / this.getMillisBetweenBeats();
@@ -239,120 +239,27 @@ class LaunchpadAdapter {
     }
 }
 
-class AbstractShaderRenderer {
-    constructor(p5) {
-        this.p5 = p5;
-        this.lastPeakBeat = 0;
-        this.lastX = 0;
-        this.lastY = 0;
-        this.lastFrame = 0;
-        this.currentDirectionX = 2 * Math.random() - 1;
-        this.currentDirectionY = 2 * Math.random() - 1;
-        this.frameDirection = 1;
-    }
-    getNextFrameDirection(direction) {
-        return direction * -1;
-    }
-    reset() {
-    }
-    render(percent, lastBeat, bpm) {
-        this.detectBeats(lastBeat, bpm);
-        let scaledValue = Math.abs(Math.sin(percent * Math.PI)) || 0;
-        scaledValue = Math.max(scaledValue, .1);
-        // instead of just setting the active shader we are passing it to the createGraphics layer
-        this.p5.shader(this.getShader());
-        // here we're using setUniform() to send our uniform values to the shader
-        this.lastFrame += this.frameDirection * scaledValue * this.getFrameScaleValue();
-        this.lastX += this.currentDirectionX * this.getMouseScaleValue() * scaledValue;
-        this.lastY += this.currentDirectionY * this.getMouseScaleValue() * scaledValue;
-        this.getShader().setUniform("iMouse", [this.lastX, this.lastY]);
-        this.getShader().setUniform("iFrame", this.lastFrame);
-        this.getShader().setUniform("iTime", this.lastFrame);
-        this.getShader().setUniform("iResolution", [this.p5.width, this.p5.height]);
-        // rect gives us some geometry on the screen
-        this.p5.rect(0, 0, this.p5.width, this.p5.height);
-    }
-    detectBeats(lastBeat, bpm) {
-        const intervalLength = 60000 / bpm * this.getBeatCount();
-        const realTraveledTime = lastBeat - this.lastPeakBeat;
-        const realPercent = realTraveledTime / intervalLength;
-        if (realPercent > this.getGoalPercentOff()) {
-            if (lastBeat - this.lastPeakBeat > intervalLength + 100) {
-                console.log("WOAH!");
-            }
-            this.lastPeakBeat = this.p5.millis();
-            this.currentDirectionX = 2 * Math.random() - 1;
-            this.currentDirectionY = 2 * Math.random() - 1;
-            this.frameDirection = this.getNextFrameDirection(this.frameDirection);
-        }
-    }
-    getGoalPercentOff() {
-        return 1 - .2 / this.getBeatCount();
-    }
-}
-
-class HypercolorRenderer extends AbstractShaderRenderer {
-    constructor(p5, p5Constructors) {
-        super(p5);
-        this.p5Constructors = p5Constructors;
-    }
-    initialize() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.shader = this.p5.loadShader("shaders/hypercolor.vert", "shaders/hypercolor.frag");
-        });
-    }
-    getShader() {
-        return this.shader;
-    }
-    getBeatCount() {
-        return 1;
-    }
-    getMouseScaleValue() {
-        return 1;
-    }
-    getFrameScaleValue() {
-        return 4;
-    }
-}
-
-class CloudsRenderer extends AbstractShaderRenderer {
-    constructor(p5, p5Constructors) {
-        super(p5);
-        this.p5Constructors = p5Constructors;
-    }
-    initialize() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.shader = this.p5.loadShader("shaders/hypercolor.vert", "shaders/clouds.frag");
-        });
-    }
-    getShader() {
-        return this.shader;
-    }
-    getBeatCount() {
-        return 1;
-    }
-    getMouseScaleValue() {
-        return 0;
-    }
-    getFrameScaleValue() {
-        return 0.1;
-    }
-    getNextFrameDirection() {
-        return 1;
-    }
-}
-
 class AbstractGifRenderer {
     constructor(p5) {
         this.p5 = p5;
         this.lastPeakBeat = 0;
+        this.images = new Map();
+    }
+    padNumber(n, m) {
+        const zeroes = '0'.repeat(m - n.toString().length);
+        return zeroes + n.toString();
     }
     getFirstFrame() {
         return 1;
     }
-    reset() {
+    unload() {
+        this.images = new Map();
+        this.p5.clearStorage();
     }
-    initialize() {
+    isLoaded() {
+        return this.images.size > 0;
+    }
+    load() {
         return __awaiter(this, void 0, void 0, function* () {
             this.images = new Map();
             for (var i = 0; i < this.getFramesInGif(); i++) {
@@ -364,7 +271,10 @@ class AbstractGifRenderer {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
                 const offset = this.isZeroBased() ? 0 : 1;
-                this.p5.loadImage(this.getFileName(frame + offset), resolve, reject);
+                this.p5.loadImage(this.getFileName(frame + offset), (image) => {
+                    image.resize(this.p5.width, this.p5.height);
+                    resolve(image);
+                }, reject);
             });
         });
     }
@@ -483,9 +393,13 @@ class RainbowStrobeFilter extends AbstractStrobeFilter {
 class BlankRenderer {
     constructor(p5Instance) {
         this.p5Instance = p5Instance;
+        this.loaded = false;
         this.p5Instance.colorMode("rgb");
     }
-    initialize() {
+    isLoaded() {
+        return this.loaded;
+    }
+    load() {
         return __awaiter(this, void 0, void 0, function* () {
             this.image = this.p5Instance.createImage(this.p5Instance.width, this.p5Instance.height);
             for (let x = 0; x < this.image.width; x += 1) {
@@ -494,9 +408,12 @@ class BlankRenderer {
                 }
             }
             this.image.updatePixels();
+            this.loaded = true;
         });
     }
-    reset() {
+    unload() {
+        this.image = null;
+        this.loaded = false;
     }
     render(percent, lastBeat, bpm) {
         this.p5Instance.image(this.image, -this.p5Instance.width / 2, -this.p5Instance.height / 2);
@@ -548,7 +465,7 @@ class RedBlackStrobeFilter extends AbstractStrobeFilter {
 
 class WhiteBlackStrobeFilter extends AbstractStrobeFilter {
     getStrobeFrequency() {
-        return 4;
+        return 8;
     }
     getColors() {
         return [
@@ -561,6 +478,21 @@ class WhiteBlackStrobeFilter extends AbstractStrobeFilter {
     }
 }
 
+class HandsRenderer extends AbstractGifRenderer {
+    getFileName(frame) {
+        return `gif/hands/output_${this.padNumber(frame, 5)}.png`;
+    }
+    getBeatCount() {
+        return 16;
+    }
+    getFramesInGif() {
+        return 182;
+    }
+    isZeroBased() {
+        return false;
+    }
+}
+
 class LaunchpadMapping {
     constructor(navigator, p5Instance, p5Constructors, setActiveRenderer, setActiveFilter, stack) {
         this.p5Instance = p5Instance;
@@ -569,96 +501,90 @@ class LaunchpadMapping {
         this.setActiveFilter = setActiveFilter;
         this.stack = stack;
         this.rendererConfig = [];
+        this.loadedRenderers = null;
         this.filterConfig = [];
         this.launchpadAdapter = new LaunchpadAdapter(navigator);
     }
     init() {
         return __awaiter(this, void 0, void 0, function* () {
             const blank = new BlankRenderer(this.p5Instance);
-            yield blank.initialize();
+            yield blank.load();
             this.rendererConfig.push({
                 renderer: blank,
                 color: LaunchpadColor.GREEN,
-                x: 5,
-                y: 0,
-            });
-            const couldRenderer = new CloudsRenderer(this.p5Instance, this.p5Constructors);
-            yield couldRenderer.initialize();
-            this.rendererConfig.push({
-                renderer: couldRenderer,
-                color: LaunchpadColor.GREEN,
                 x: 0,
-                y: 0,
-            });
-            const hypercolorRenderer = new HypercolorRenderer(this.p5Instance, this.p5Constructors);
-            yield hypercolorRenderer.initialize();
-            this.rendererConfig.push({
-                renderer: hypercolorRenderer,
-                color: LaunchpadColor.RED,
-                x: 1,
                 y: 0,
             });
             // Gif Renderers
             const dancingShapeRenderer = new DancingShape(this.p5Instance);
-            yield dancingShapeRenderer.initialize();
             this.rendererConfig.push({
                 renderer: dancingShapeRenderer,
                 color: LaunchpadColor.LIGHT_BLUE,
-                x: 2,
-                y: 0,
-            });
-            const pumpkinRenderer = new PumpkinRenderer(this.p5Instance);
-            yield pumpkinRenderer.initialize();
-            this.rendererConfig.push({
-                renderer: pumpkinRenderer,
-                color: LaunchpadColor.ORANGE,
                 x: 3,
                 y: 0,
             });
+            const pumpkinRenderer = new PumpkinRenderer(this.p5Instance);
+            this.rendererConfig.push({
+                renderer: pumpkinRenderer,
+                color: LaunchpadColor.ORANGE,
+                x: 4,
+                y: 0,
+            });
             const goatRnederer = new EvilGoatRenderer(this.p5Instance);
-            yield goatRnederer.initialize();
             this.rendererConfig.push({
                 renderer: goatRnederer,
                 color: LaunchpadColor.RED,
-                x: 4,
+                x: 5,
+                y: 0,
+            });
+            const handsRenderer = new HandsRenderer(this.p5Instance);
+            this.rendererConfig.push({
+                renderer: handsRenderer,
+                color: LaunchpadColor.LIGHT_BLUE,
+                x: 6,
                 y: 0,
             });
             this.filterConfig.push({
                 renderer: null,
-                color: LaunchpadColor.RED,
+                color: LaunchpadColor.WHITE,
                 x: 0,
-                y: 1,
+                y: 7,
             });
             this.filterConfig.push({
                 renderer: new WhiteBlackStrobeFilter(this.p5Instance),
-                color: LaunchpadColor.RED,
-                x: 0,
-                y: 2,
+                color: LaunchpadColor.GREEN,
+                x: 1,
+                y: 7,
+            });
+            this.filterConfig.push({
+                renderer: new RainbowStrobeFilter(this.p5Instance),
+                color: LaunchpadColor.GREEN,
+                x: 2,
+                y: 7,
             });
             this.filterConfig.push({
                 renderer: new RedBlackStrobeFilter(this.p5Instance),
                 color: LaunchpadColor.RED,
-                x: 0,
-                y: 3,
+                x: 3,
+                y: 7,
             });
             this.filterConfig.push({
                 renderer: new HalloweenStrobeFilter(this.p5Instance),
-                color: LaunchpadColor.RED,
-                x: 0,
-                y: 4,
-            });
-            this.filterConfig.push({
-                renderer: new RainbowStrobeFilter(this.p5Instance),
-                color: LaunchpadColor.RED,
-                x: 0,
-                y: 5,
+                color: LaunchpadColor.ORANGE,
+                x: 4,
+                y: 7,
             });
         });
     }
     watchRendererConfig(config) {
         this.launchpadAdapter.changeMidiColor(config.x, config.y, config.color);
         this.launchpadAdapter.subscribeMidiPressed(config.x, config.y, () => {
-            this.setRendererActive(config);
+            if (config.renderer.isLoaded()) {
+                this.setRendererActive(config);
+            }
+            else {
+                this.setLoadedRenderer(config);
+            }
         });
     }
     watchFilterConfig(config) {
@@ -676,10 +602,22 @@ class LaunchpadMapping {
     setRendererActive(config) {
         if (this.activeRenderer != null) {
             this.launchpadAdapter.changeMidiColor(this.activeRenderer[0], this.activeRenderer[1], this.activeRenderer[2]);
+            this.activeRenderer[3].unload();
         }
         this.launchpadAdapter.changeMidiColor(config.x, config.y, LaunchpadColor.WHITE);
-        this.activeRenderer = [config.x, config.y, config.color];
+        this.activeRenderer = [config.x, config.y, config.color, config.renderer];
         this.setActiveRenderer(config.renderer);
+    }
+    setLoadedRenderer(config) {
+        if (this.loadedRenderers != null && this.loadedRenderers[3] !== this.activeRenderer[3]) {
+            this.launchpadAdapter.changeMidiColor(this.loadedRenderers[0], this.loadedRenderers[1], this.loadedRenderers[2]);
+            this.loadedRenderers[3].unload();
+        }
+        this.launchpadAdapter.changeMidiColor(config.x, config.y, LaunchpadColor.LIGHT_BLUE);
+        this.loadedRenderers = [config.x, config.y, config.color, config.renderer];
+        config.renderer.load().then(() => {
+            this.launchpadAdapter.changeMidiColor(config.x, config.y, LaunchpadColor.GREEN);
+        });
     }
     setFilterActive(config) {
         if (this.activeFilter != null) {
@@ -695,7 +633,6 @@ class LaunchpadMapping {
             this.rendererConfig.forEach((config) => this.watchRendererConfig(config));
             this.filterConfig.forEach((config) => this.watchFilterConfig(config));
             this.setRendererActive(this.rendererConfig[0]);
-            // TOOD: Remove
             this.setFilterActive(this.filterConfig[0]);
             this.watchReset16();
         });
